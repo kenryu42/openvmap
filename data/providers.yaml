@@ -1,0 +1,1565 @@
+# Provider table for OpenVMap.
+#
+# One entry per hosting, site-platform, cloud, CDN, DNS or mail provider,
+# with how to recognise it from public DNS and BGP data, and its published
+# response to the current incident.
+#
+# License: CC BY 4.0 (see data/LICENSE). The code is MIT (see LICENSE).
+#
+# Rules for contributors (checked by `bun run validate-providers`):
+#   - "confidence: official" only with a link to the provider's own page,
+#     read by whoever sets it.
+#   - "confidence: secondary" for press or third-party summaries. Say so in
+#     the summary and link the summary you used.
+#   - Never guess an ASN or a suffix. Each identifier needs either the
+#     vendor's own page that documents it or a dig / Team Cymru observation;
+#     record which in the comment under it. A missing identifier causes a
+#     missed match; a wrong one causes a wrong vendor.
+#   - No suffix under two providers. Services of one operator that share a
+#     network may each list its ASN, the operator first; every later one
+#     needs a name-server or CNAME suffix, which decides between them.
+#     Where the name servers also serve another service on that network,
+#     give ptr_suffixes (the reverse DNS names of the service's servers)
+#     instead: the check then asks for the address's reverse name, and only
+#     that name picks the service.
+#   - Write summaries on one line: a line break inside Japanese text shows
+#     up as a stray space.
+#   - verified_at is the date you last read the source, not the source's date.
+#   - news is the provider's own list of notices (or its feed), opened and
+#     seen to list its notices. check-sources reports new posts on it whose
+#     title mentions PHP, a vulnerability, security, an emergency or a pause.
+#
+# incident is the incident the site features; incident_cves are shown next to
+# its name, and content/guide/<incident>/ holds its guide.
+#
+# Status values: patched | in_progress | unknown | conflicting | n/a
+# Kinds: hosting (runs PHP for the customer) | saas (runs the whole site on
+#        its own platform) | paas (runs the customer's containers; the
+#        customer runs PHP) | cloud (customer runs PHP) | cdn | dns | mail
+# n/a is for kinds that run no PHP for the customer: saas, paas, cloud, cdn, dns, mail.
+
+incident: php2shell
+incident_cves: [CVE-2026-109618, CVE-2026-109619]
+updated_at: "2026-10-28"
+
+providers:
+
+  # ---- Japanese shared / managed hosting. Where several services share one operator's network, the operator is listed first: it is the default when no name server or CNAME says which service it is.
+
+  - id: xserver
+    name: "Xserver"
+    name_ja: "エックスサーバー"
+    kind: hosting
+    asns: [131965]
+    #   131965: dig +short TXT AS131965.asn.cymru.com -> "131965 | JP | apnic | 2011-08-04 | XSERVER - Xserver Inc., JP"; serv…
+    as_name_contains: ["XSERVER"]
+    #   XSERVER: dig +short TXT AS131965.asn.cymru.com -> "... XSERVER - Xserver Inc., JP"
+    ns_suffixes: ["xserver.jp", "xtwo.ne.jp"]
+    #   xserver.jp: https://www.xserver.ne.jp/manual/man_domain_namesever_setting.php
+    #   xtwo.ne.jp: Same manual page lists ns1/ns2/ns3.xtwo.ne.jp for accounts from the 2019 X2 integration; dig +short A ns1.xtwo…
+    notes: "Operated by Xserver Inc. Star Rental Server, Shin Rental Server and wpX Speed run in the same network (AS131965). Star customers are recognised by their name servers; Shin Rental Server and wpX Speed share their name servers (ns1-3.wpx.ne.jp), cannot be told apart, and show as Xserver."
+    notes_ja: "エックスサーバー株式会社の運営。スターレンタルサーバー・シン・レンタルサーバー・wpX Speed も同じネットワーク（AS131965）で動いている。スターはネームサーバーで判別できるが、シン・レンタルサーバーと wpX Speed はネームサーバー（ns1〜3.wpx.ne.jp）も共通で区別できないため、エックスサーバーと表示される。"
+    news: https://www.xserver.ne.jp/support/news.php
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-26"
+        summary: "公式発表（10月21日付、26日の完了まで記載）：エックスサーバー・XServerビジネス・XServer for WordPressでは、10月21日12:00までに修正版公開前の緩和策を実施し、同日23:00頃の修正版公開後はPHP 8.2〜8.5から順次修正を適用、公式サポート終了済みの旧バージョンにも対応を広げ、10月26日6:20までにPHP 5.1〜8.5のすべての対象サーバーへの対応を完了。8.2〜8.5は同じ系列の修正版に更新、5.1〜8.1はバージョンを変えずに修正パッチを適用しているため、表示上のバージョンが古く見えても正常。このお知らせにはバージョンごとの完了時刻の記載はない。XServer VPS系は利用者がPHPを管理するため事業者はパッチを適用していない。"
+        summary_en: "Official notice (dated Oct 21, covering completion on Oct 26): on Xserver, XServer Business and XServer for WordPress, mitigations were in place by 12:00 on Oct 21; after the fixed releases came out around 23:00 that day, fixes were rolled out starting with PHP 8.2-8.5 and extended to older end-of-life versions, reaching all target servers for PHP 5.1-8.5 by 06:20 on Oct 26. 8.2-8.5 were moved to fixed releases of the same branch; 5.1-8.1 were patched without changing the version, so an older-looking version number is expected. This notice gives no per-version completion times. XServer VPS products are not patched by Xserver; customers manage PHP there."
+        customer_action: "今回の対策のために急いでPHPバージョンを変える必要はない（5.1〜8.5のすべてが対策済み）。利用状況により追加の対策を改めて案内する場合があるとされる。PHP 8.1以前は公式サポートが終了しているため、バックアップと動作確認のうえサポート対象のPHPへの切替を検討。XServer VPSの利用者は自分でPHPのバージョンを確認し修正版へ更新する。"
+        customer_action_en: "No urgent PHP version change is needed for this fix (5.1-8.5 are all patched). The vendor may announce extra steps depending on usage. PHP 8.1 and older are out of upstream support, so plan a move to a supported PHP after a backup and test. XServer VPS customers must check and update PHP themselves."
+        source: https://www.xserver.ne.jp/news_detail.php?view_id=19756
+        verified_at: "2026-10-26"
+
+  - id: starserver
+    name: "Star Rental Server"
+    name_ja: "スターレンタルサーバー"
+    kind: hosting
+    asns: [131965]
+    #   131965: ns1.star-domain.jp 162.43.112.88 originates from AS131965 (Cymru, 2026-10-24); shared with xserver
+    ns_suffixes: ["star-domain.jp"]
+    #   star-domain.jp: https://www.star.ne.jp/support/manual/man_domain_namesever_setting.php
+    notes: "The site footer reads XServer Inc. Name servers ns1/ns3.star-domain.jp sit in Xserver's AS131965, so an ASN-only match would show Xserver."
+    notes_ja: "サイトのフッターの表記はXServer Inc.。ネームサーバー（ns1/ns3.star-domain.jp）はエックスサーバーのAS131965上にあるため、ASだけで判定するとエックスサーバーと表示される。"
+    news: https://www.star.ne.jp/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（CVE番号を明記した専用のお知らせ、10月21日付）：スターレンタルサーバーとスタードメイン（無料サーバー）で、10月21日12:00までに修正版公開前の緩和策を実施し、10月22日14:00までにPHP 7.2〜8.5のすべての対象サーバーへの対応を完了。8.2〜8.5は同じ系列の修正版に更新し、7.2〜8.1はバージョンを変えずに修正パッチを適用した。以前の告知にあった5.1〜7.1の記載は、現在のお知らせにはない。"
+        summary_en: "Official (dedicated notice naming the CVEs, dated Oct 21): on Star Rental Server and the Star Domain free server, mitigations were in place by 12:00 on Oct 21 and the fix reached all target servers for PHP 7.2-8.5 by 14:00 on Oct 22. PHP 8.2-8.5 were updated to the fixed release of the same branch; 7.2-8.1 were patched without changing the version. The PHP 5.1-7.1 timings in the earlier notice are not in the current one."
+        customer_action: "今回の対策のために急いでPHPバージョンを変える必要はないが、利用状況により追加の対策を案内する場合があるとされる。PHP 8.1以前は公式サポートが終了しているため、バックアップと動作確認のうえ8.3以上への切替を検討。"
+        customer_action_en: "No urgent PHP version change is needed for this fix, though the vendor may announce extra steps depending on usage. PHP 8.1 and older are out of upstream support, so plan a move to 8.3+ after a backup and test."
+        source: https://www.star.ne.jp/news/detail.php?view_id=14462
+        verified_at: "2026-10-28"
+
+  - id: shin-rental
+    name: "Shin Rental Server"
+    name_ja: "シン・レンタルサーバー"
+    kind: hosting
+    notes: "Operated by Xserver Inc. Its name servers (ns1-ns3.wpx.ne.jp) and AS131965 are shared with wpX Speed, so DNS or ASN alone cannot tell the two apart."
+    notes_ja: "エックスサーバー株式会社の運営。ネームサーバー（ns1〜ns3.wpx.ne.jp）とAS131965はwpX Speedと共通のため、DNSやASだけではwpX Speedと区別できない。"
+    news: https://www.shin-server.jp/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（CVE番号を明記した専用のお知らせ、10月21日付）：シンレンタルサーバー・シンフリーサーバーで、10月21日12:00までに修正版公開前の緩和策を実施し、10月22日14:00までにPHP 7.2〜8.5のすべての対象サーバーへの対応を完了。8.2〜8.5は同じ系列の修正版に更新し、7.2〜8.1はバージョンを変えずに修正パッチを適用した。以前の告知にあった5.1〜7.1の記載は、現在のお知らせにはない。シンVPSは利用者がOSやPHPを管理するため、事業者によるパッチ適用の対象外。"
+        summary_en: "Official (dedicated notice naming the CVEs, dated Oct 21): on Shin Rental Server and Shin Free Server, mitigations were in place by 12:00 on Oct 21 and the fix reached all target servers for PHP 7.2-8.5 by 14:00 on Oct 22. PHP 8.2-8.5 were updated to the fixed release of the same branch; 7.2-8.1 were patched without changing the version. The PHP 5.1-7.1 timings in the earlier notice are not in the current one. Shin VPS customers manage the OS and PHP, so the vendor does not patch it."
+        customer_action: "コントロールパネルで利用中のPHPバージョンを確認する。PHP 8.1以前は公式サポートが終了しているため、サポート対象のPHPへの切替を検討。追加の対策が必要な場合は事業者から改めて案内がある。シンVPSの利用者は自分でPHPを修正版へ更新する。"
+        customer_action_en: "Check your PHP version in the panel. PHP 8.1 and older are out of upstream support, so plan a move to a supported PHP. The vendor says it will notify customers if extra steps are needed. Shin VPS customers must update PHP themselves."
+        source: https://www.shin-server.jp/news/detail.php?view_id=2544
+        verified_at: "2026-10-28"
+
+  - id: wpx
+    name: "wpX Speed"
+    name_ja: "wpX Speed"
+    kind: hosting
+    notes: "Managed WordPress hosting operated by XServer Inc. Its name servers (ns1-ns3.wpx.ne.jp) and AS131965 are shared with Shin Rental Server, so DNS or ASN alone cannot tell them apart."
+    notes_ja: "エックスサーバー株式会社が運営するWordPress専用のクラウド型レンタルサーバー。ネームサーバー（ns1〜ns3.wpx.ne.jp）とAS131965はシン・レンタルサーバーと共通のため、DNSやASだけでは区別できない。"
+    news: https://www.wpx.ne.jp/news/
+    #   Checked 2026-10-26: wpX Speed's own news list.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-21"
+        summary: "公式発表（CVE番号を明記した専用のお知らせ、10月21日付）：wpX Speed・wpXレンタルサーバー・wpXクラウドで、10月21日12:00までに修正版公開前の緩和策を実施し、修正版公開後に順次修正を適用して、PHP 5.4〜8.5のすべての対象サーバーへの対応を完了。8.2〜8.5は同じ系列の修正版に更新し、5.4〜8.1はバージョンを変えずに修正パッチを適用した。完了の日時は書かれていない。"
+        summary_en: "Official (dedicated notice naming the CVEs, dated Oct 21): on wpX Speed, wpX Rental Server and wpX Cloud, mitigations were in place by 12:00 on Oct 21 and, after the fixed releases came out, the fix reached all target servers for PHP 5.4-8.5. PHP 8.2-8.5 were updated to the fixed release of the same branch; 5.4-8.1 were patched without changing the version. The notice gives no completion time."
+        customer_action: "今回の対策のために急いでPHPバージョンを変える必要はないが、利用状況により追加の対策を案内する場合があるとされる。PHP 8.1以前は公式サポートが終了しているため、サポート対象のPHPへの切替を検討。"
+        customer_action_en: "No urgent PHP version change is needed for this fix, though the vendor may announce extra steps depending on usage. PHP 8.1 and older are out of upstream support, so plan a move to a supported PHP."
+        source: https://www.wpx.ne.jp/news/detail.php?view_id=3246
+        verified_at: "2026-10-28"
+
+  - id: sakura
+    name: "SAKURA internet"
+    name_ja: "さくらインターネット"
+    kind: hosting
+    asns: [9370, 9371]
+    #   9370: dig +short TXT AS9370.asn.cymru.com -> "SAKURA-B - SAKURA Internet Inc., JP"; documented NS ns1.dns.ne.jp = 61…
+    #   9371: dig +short TXT AS9371.asn.cymru.com -> "SAKURA-C - SAKURA Internet Inc., JP"; documented NS ns2.dns.ne.jp = 13…
+    as_name_contains: ["SAKURA"]
+    #   SAKURA: dig +short TXT AS9370.asn.cymru.com -> "9370 | JP | apnic | 1998-08-17 | SAKURA-B - SAKURA Internet Inc., JP"
+    ns_suffixes: ["dns.ne.jp"]
+    #   dns.ne.jp: https://help.sakura.ad.jp/domain/2147/
+    notes: "Covers rental server, VPS and cloud. On VPS and cloud the customer runs PHP; the provider's patch status applies to the rental server only."
+    notes_ja: "レンタルサーバ・VPS・クラウドを含む。VPSとクラウドではPHPは利用者が管理するため、事業者の対応状況はレンタルサーバにのみ当てはまる。"
+    news: https://www.sakura.ad.jp/corporate/information/announcements/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-23"
+        summary: "公式発表（10月23日17:30追記）：本脆弱性対応の緊急メンテナンスはすべて終了。さくらのレンタルサーバ・マネージドサーバでは、コントロールパネルで選択できる全てのPHPバージョン（サポート情報の告知によれば8.3/8.2/8.1/8.0/7.4/5.6/5.4/5.3/5.2）に対応済みで、提供中のサポート終了版にも必要な修正を適用。バージョン表記が変わるかどうかは記載がない。さくらのVPSはサービス提供部分でPHPを使っていないため影響なしとされ、VPS上で自らPHPを使う場合は最新版への更新を案内。さくらのクラウドは必要な対応を完了したが、一部機能の提供を停止中。"
+        summary_en: "Official (addendum Oct 23 17:30): all emergency maintenance for this vulnerability has ended. Rental server and managed server: every PHP version selectable in the control panel (8.3/8.2/8.1/8.0/7.4/5.6/5.4/5.3/5.2 per the support notice) is fixed, including the EOL versions still offered. The notices do not say whether the version string changes. Sakura VPS does not use PHP in the service itself; customers running PHP on a VPS are told to update. Sakura Cloud: required work done, some features still suspended."
+        customer_action: "レンタルサーバ利用者に緊急の作業はなし。サポート終了版は今後新たな脆弱性が見つかるおそれがあるため、サポート期間中の最新版PHPへの移行を推奨。VPSやクラウドで自分でPHPを動かしている場合は自分で修正版へ更新する。"
+        customer_action_en: "Rental server customers: no urgent action. Because EOL PHP may have new flaws later, Sakura recommends moving to a supported PHP. If you run PHP yourself on VPS or cloud, update it yourself."
+        source: https://www.sakura.ad.jp/corporate/information/announcements/2026/10/22/1968226117/
+        verified_at: "2026-10-24"
+
+  - id: gmo-internet
+    name: "GMO Internet Group"
+    name_ja: "GMOインターネットグループ"
+    kind: hosting
+    asns: [7506, 58791]
+    #   7506: https://www.onamae.com/guide/p/67
+    #   58791: https://www.onamae.com/news/article/11090/
+    as_name_contains: ["GMO INTERNET"]
+    #   GMO INTERNET: Cymru AS names: AS7506 'GMO-I-R1 - GMO Internet, Inc., JP', AS58791 'GMO-I-R2 - GMO Internet, Inc., JP', AS559…
+    notes: "Network shared by several GMO services (ConoHa, Onamae.com, VPS, GMO Pepabo's Lolipop and heteml, and GMO DigiRock's XREA, VALUESERVER and One Rental Server). The DNS name servers usually identify which one; if only the ASN matched, the specific service is unknown."
+    notes_ja: "複数のGMOサービス（ConoHa、お名前.com、VPS、GMOペパボのロリポップ！・ヘテムル、GMOデジロックのXREA・バリューサーバー・Oneレンタルサーバーなど）が共有するネットワーク。通常はネームサーバーでどのサービスか分かる。ASだけが一致した場合、サービスは特定できない。"
+    incidents:
+      php2shell:
+        status: "unknown"
+        confidence: secondary
+        summary: "ASだけではGMOのどのサービスか判別できない。ConoHa WING、お名前.com レンタルサーバー、ロリポップ！、ヘテムルは公式に対応完了を発表している（各エントリ参照）。同じネットワークで動くGMOデジロックのXREA・バリューサーバー・Oneレンタルサーバーも、バリュードメインの稼働状況ページで10月22日に全サーバー・提供中の全PHPバージョンへの対応完了を告知している（XREA: https://status.value-domain.com/information/detail/?info_id=919 、バリューサーバー: info_id=918、One: info_id=920）。VPSなど利用者がPHPを管理するサービスは利用者自身で更新が必要。"
+        summary_en: "The ASN alone does not say which GMO service this is. ConoHa WING, Onamae.com Rental Server, Lolipop and heteml have each officially reported completion (see their entries). GMO DigiRock's XREA, VALUESERVER and One Rental Server, which run in the same networks, each announced completion on all servers and every offered PHP version on Oct 22 on the Value Domain status page (XREA: https://status.value-domain.com/information/detail/?info_id=919, VALUESERVER: info_id=918, One: info_id=920). On VPS and similar services the customer patches PHP."
+        customer_action: "利用中のサービス名を確認し、該当サービスのお知らせを参照。"
+        customer_action_en: "Identify the specific GMO service and read its notice."
+        verified_at: "2026-10-24"
+
+  - id: lolipop
+    name: "Lolipop (GMO Pepabo)"
+    name_ja: "ロリポップ！（GMOペパボ）"
+    kind: hosting
+    asns: [7506]
+    #   7506: shared with gmo-internet. dig +short A ftp.lolipop.jp -> 157.7.104.66, ssh.lolipop.jp -> 157.7.106.21; Team Cymru origin for both -> "7506 | 157.7.96.0/20 | JP | apnic" (2026-10-26)
+    ns_suffixes: ["lolipop.jp"]
+    #   lolipop.jp: https://lolipop.jp/manual/domain/settings/
+    notes: "Customer name servers are uns01/uns02.lolipop.jp; Muumuu Domain users can pick Lolipop directly. Lolipop does not publish the AS of its web servers; its customer servers are observed in GMO Internet's AS7506, so the name servers decide between it and the other GMO services there."
+    notes_ja: "独自ドメインのネームサーバーは uns01／uns02.lolipop.jp。ムームードメインでは「ロリポップ！」を選ぶだけで設定される。ロリポップのWebサーバーのASは公表されていないが、利用者向けサーバーはGMOインターネットのAS7506にあり、同じネットワークの他のGMOサービスとはネームサーバーで区別する。"
+    news: https://lolipop.jp/info/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式報告（10月22日）：PHP 8.2〜8.5 は開発元の修正版（8.2.35／8.3.36／8.4.27／8.5.12）を適用し、7.4／8.0／8.1 は開発元が提供したサポート終了版向けの修正を適用、公式修正のない 5.3〜7.3 は公式の修正内容をもとに自社で作成した修正を適用した。全バージョンで session.upload_progress を無効化。修正適用のため10月22日 3:09頃から一部サーバーでサイト表示を停止し、13時頃に再開した。攻撃を狙ったとみられるアクセスの試みはあったが、不正アクセスや情報漏えいは現時点で確認されていない。旧バージョンは独自修正のため、表示上のバージョン番号が変わるかどうかは告知に記載がない。"
+        summary_en: "Official report (Oct 22): PHP 8.2-8.5 updated to the upstream fixed releases (8.2.35/8.3.36/8.4.27/8.5.12); 7.4/8.0/8.1 received the upstream fix code for EOL branches; 5.3-7.3, which have no official fix, received Lolipop's own fix based on the upstream one. session.upload_progress is disabled on every version. Customer sites on some servers were taken offline from about 03:09 on Oct 22 and restored at about 13:00. Exploit attempts were seen, but no unauthorized access or data leak has been confirmed. Because the older branches were patched in place, the notice does not say whether their displayed version number changes."
+        customer_action: "ユーザー専用ページのPHP設定から、ドメインごとにPHP 8.2以降へ切り替える（8.1以下への今回の対策は暫定的なもの）。WordPressは本体・PHP・プラグイン・テーマが最新で更新が続いているか確認し、再開後にサイト表示・問い合わせフォーム・ファイルアップロードが正しく動くか確かめる。"
+        customer_action_en: "Switch each domain to PHP 8.2 or later on the user page; the fixes for 8.1 and older are temporary. Check that WordPress core, plugins and themes are current and still maintained, and test page display, contact forms and file uploads."
+        source: https://lolipop.jp/info/news/8239/
+        verified_at: "2026-10-24"
+
+  - id: heteml
+    name: "heteml (GMO Pepabo)"
+    name_ja: "ヘテムル（GMOペパボ）"
+    kind: hosting
+    asns: [7506]
+    #   7506: shared with gmo-internet. dig +short A <any>.heteml.net (customers' initial subdomains) -> 157.7.44.160; Team Cymru origin -> "7506 | 157.7.40.0/21 | JP | apnic" (2026-10-26)
+    ns_suffixes: ["heteml.jp"]
+    #   heteml.jp: https://heteml.jp/info/detail/id/2642/
+    notes: "heteml DNS name servers are dns0/dns1.heteml.jp."
+    notes_ja: "ヘテムルDNSのネームサーバーは dns0／dns1.heteml.jp。"
+    news: https://heteml.jp/info/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式報告（10月22日 18:05）：PHP 8.2〜8.5 は開発元の修正版（8.2.35／8.3.36／8.4.27／8.5.12）を適用し、7.4／8.0／8.1 は開発元が提供したサポート終了版向けの修正を適用、5.6〜7.3 は公式の修正内容をもとに自社で作成・検証した修正を適用した。全バージョンで session.upload_progress を無効化。10月22日 3:05頃からサーバー単位でサイト表示を停止し、11:24頃に再開した。攻撃を狙ったとみられるアクセスの試みはあったが、不正アクセスや情報漏えいは現時点で確認されていない。旧バージョンは独自修正のため、表示上のバージョン番号が変わるかどうかは告知に記載がない。"
+        summary_en: "Official report (Oct 22 18:05): PHP 8.2-8.5 updated to the upstream fixed releases (8.2.35/8.3.36/8.4.27/8.5.12); 7.4/8.0/8.1 received the upstream fix code for EOL branches; 5.6-7.3 received heteml's own fix based on the upstream one. session.upload_progress is disabled on every version. Sites were taken offline per server from about 03:05 on Oct 22 and restored at about 11:24. Exploit attempts were seen, but no unauthorized access or data leak has been confirmed. Because the older branches were patched in place, the notice does not say whether their displayed version number changes."
+        customer_action: "コントロールパネルの［各種設定］→［PHP］から、ドメインごとにPHP 8.2以降へ切り替える（8.1以下の今回の対策は応急的なもの）。WordPressは本体・プラグイン・テーマの更新状況を確認し、サイト表示・問い合わせフォーム・ファイルアップロードが正しく動くか確かめる。"
+        customer_action_en: "Switch each domain to PHP 8.2 or later in the control panel (Settings > PHP); the fixes for 8.1 and older are stopgaps. Check WordPress core, plugins and themes, and test page display, contact forms and file uploads."
+        source: https://heteml.jp/info/detail/id/2954/
+        verified_at: "2026-10-24"
+
+  - id: conoha
+    name: "ConoHa WING (GMO Internet)"
+    name_ja: "ConoHa WING（GMOインターネット）"
+    kind: hosting
+    asns: [7506]
+    #   7506: shared with gmo-internet. libeblog.com (name servers ns-a1..a3.conoha.io) -> 118.27.99.216; Team Cymru origin -> "7506 | 118.27.0.0/17 | JP | apnic"; dig -x -> www144.conoha.ne.jp (2026-10-26)
+    ns_suffixes: ["conoha.io"]
+    #   conoha.io: https://support.conoha.jp/wing/faq/server-q/information/
+    ptr_suffixes: ["conoha.ne.jp"]
+    #   conoha.ne.jp: dig -x 118.27.99.215 / .216 / .217 -> www143 / www144 / www145.conoha.ne.jp, the WING servers of libeblog.com and its neighbours; ConoHa VPS addresses in the same AS read v<ip>.<id>.static.cnode.io or .cnode.jp (dig -x 118.27.10.10, 157.7.200.10, 160.251.140.20; 2026-10-26)
+    notes: "The ns-a1..a3.conoha.io name servers are also the default for ConoHa VPS (Version 2.0) DNS, where the customer runs PHP, and VPS and WING servers share GMO Internet's AS7506. Only a WING server's reverse name (wwwNNN.conoha.ne.jp) identifies WING; otherwise the site shows as GMO Internet Group."
+    notes_ja: "ネームサーバー ns-a1〜a3.conoha.io は ConoHa VPS（Version 2.0）のDNSでも使われ、VPSとWINGのサーバーはどちらもGMOインターネットのAS7506にある。VPSではPHPは利用者が管理するため、サーバーの逆引き名（wwwNNN.conoha.ne.jp）でWINGと分かる場合だけWINGとし、それ以外はGMOインターネットグループと表示する。"
+    news: https://www.conoha.jp/wing/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式「PHPの脆弱性への弊社対応完了のお知らせ（終報）」（10月22日 20:45時点）：利用中のPHPバージョンを維持したまま、提供中の全バージョン（5.6.40〜8.5.11）にセキュリティパッチを適用し、緊急メンテナンスは20:45に終了した。バージョンを上げずに修正を取り込んだため、表示されるバージョン番号は修正版の番号（例：8.5.12）ではなく従来の番号（例：8.5.11）のままの場合がある。"
+        summary_en: "Official final notice (as of 20:45 on Oct 22): security patches were applied to every offered PHP version (5.6.40 through 8.5.11) while keeping each site's current version, and the emergency maintenance ended at 20:45. The fixes were backported without a version bump, so the displayed version may stay at the old number (e.g. 8.5.11 rather than 8.5.12) even though the site is patched."
+        customer_action: "今回の対策のためにPHPバージョンを変更する必要はない。WordPressのサイトヘルスなどで修正版より古い番号が表示されても、修正は適用済み。"
+        customer_action_en: "No PHP version change is needed for this fix. A version number older than the fixed release (e.g. in WordPress Site Health) is expected; the patch is applied."
+        source: https://www.conoha.jp/wing/news/?ap=2015054909
+        verified_at: "2026-10-24"
+
+  - id: onamae-rental
+    name: "Onamae.com Rental Server (GMO Internet)"
+    name_ja: "お名前.com レンタルサーバー"
+    kind: hosting
+    asns: [58791]
+    #   58791: RS host www1117.onamae.ne.jp (https://www.onamae.com/news/article/11090/) originates from AS58791 GMO-I-R2 (Cymru 2026-10-24); shared with gmo-internet
+    ns_suffixes: ["ns-rs1.gmoserver.jp", "ns-rs2.gmoserver.jp"]
+    #   ns-rs1.gmoserver.jp: https://www.onamae.com/server/rs/server-guide/setup/page-dns-onamae/
+    #   ns-rs2.gmoserver.jp: Same guide gives secondary "ns-rs2.gmoserver.jp". dig +short A ns-rs2.gmoserver.jp -> 157.7.33.87
+    cname_suffixes: ["onamae.ne.jp"]
+    #   onamae.ne.jp: https://www.onamae.com/news/article/11090/
+    notes: "Many domains use Onamae.com only as registrar/DNS (see onamae-dns). Shared Server SD / Onamae Mail / Homepage Editor is a separate product (https://www.onamae.com/news/article/11596/, updated 22:15 Oct 23): PHP 7.4 and 8.4 are patched across the plans, 7.3 and older got mitigations only and should move to 7.4+, and customers on some server hostnames were still being worked on."
+    notes_ja: "お名前.comはドメイン登録・DNSのみの利用も多い（onamae-dns 参照）。共用サーバーSD／お名前メール／ホームページエディターは別サービスで、別告知（https://www.onamae.com/news/article/11596/、10月23日22:15更新）ではPHP 7.4と8.4へのパッチ適用が完了し、7.3以下は緩和策のみで7.4以上への変更を推奨。一部のホスト名の利用者はまだ対応中としている。"
+    news: https://www.onamae.com/news/list
+    #   Checked 2026-10-26: lists the cited notice; /news/ shows only part of it.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（10月22日 20:45時点）：レンタルサーバー（ベーシック／RSプラン／AIホームページパック）で、利用中のPHPバージョンを維持したまま、提供中の全バージョン（5.6.40〜8.5.11）にセキュリティパッチを適用し、緊急メンテナンスは20:45に終了した。バージョンを上げずに修正を取り込んだため、表示されるバージョン番号は修正版の番号（例：8.5.12）ではなく従来の番号（例：8.5.11）のままの場合がある。"
+        summary_en: "Official notice (as of 20:45 on Oct 22): for Rental Server Basic, RS plan and AI Homepage Pack, security patches were applied to every offered PHP version (5.6.40 through 8.5.11) while keeping each site's current version, and the emergency maintenance ended at 20:45. The fixes were backported without a version bump, so the displayed version may stay at the old number (e.g. 8.5.11 rather than 8.5.12)."
+        customer_action: "今回の対策のためにPHPバージョンを変更する必要はない。WordPressのサイトヘルスなどで修正版より古い番号が表示されても、修正は適用済み。"
+        customer_action_en: "No PHP version change is needed for this fix. A version number older than the fixed release (e.g. in WordPress Site Health) is expected; the patch is applied."
+        source: https://www.onamae.com/news/article/11594/
+        verified_at: "2026-10-24"
+
+  - id: wadax
+    name: "WADAX (GMO GlobalSign Holdings)"
+    name_ja: "WADAX（GMOグローバルサイン・ホールディングス）"
+    kind: hosting
+    asns: [131921]
+    #   131921: https://www.wadax.ne.jp/support/mainte/detail.php?idyea=2026&no=1792486460
+    ns_suffixes: ["wadax-sv.jp"]
+    #   wadax-sv.jp: https://www.wadax.ne.jp/support/technews/detail.php?idyea=2025&no=1738761085
+    notes: "Shared server host names are under wadax-sv.jp (some under anshin-sv.jp and wadax.ne.jp). Some shared servers (wps05.wadax.ne.jp) and the DNS secondaries are on IDC Frontier's AS4694, so an ASN-only match can be wrongly attributed to idcf."
+    notes_ja: "共用サーバーのホスト名は wadax-sv.jp（一部は anshin-sv.jp、wadax.ne.jp）。一部の共用サーバー（wps05.wadax.ne.jp）とDNSセカンダリはIDCフロンティアのAS4694上にあり、ASだけでは idcf と誤判定されうる。"
+    news: https://www.wadax.ne.jp/news/
+    #   Checked 2026-10-26: WADAX's own news list.
+    incidents:
+      php2shell:
+        status: "unknown"
+        confidence: secondary
+        summary: "2026年10月24日時点で、WADAXのニュース・メンテナンス情報・障害情報の一覧にPHPの脆弱性（php2shell）に関する告知は見当たらない。10月20日掲載の共用サーバーの緊急メンテナンス告知（10月28日・11月4日・11月5日実施）はOSとPleskの更新で、PHPには触れていない。"
+        summary_en: "As of Oct 24, 2026, WADAX's news, maintenance and incident lists show no notice about the PHP vulnerability (php2shell). The Oct 20 shared-server emergency maintenance notice (Oct 28, Nov 4 and Nov 5) covers OS and Plesk updates and does not mention PHP."
+        customer_action: "WADAXサポートに対応状況を問い合わせる。専用サーバーなど自社や制作会社がサーバーを管理している場合は、その管理者にPHPの更新を確認する。"
+        customer_action_en: "Ask WADAX support for its status. If you or your agency administer the server (e.g. dedicated plans), ask that administrator to update PHP."
+        verified_at: "2026-10-24"
+
+  - id: mixhost
+    name: "mixhost"
+    name_ja: "mixhost"
+    kind: hosting
+    ns_suffixes: ["mixhost.jp"]
+    #   mixhost.jp: https://help.mixhost.jp/hc/ja/articles/360039120652
+    notes: "mixhost.jp itself sits behind Cloudflare. Default customer name servers are ns1/ns2.mixhost.jp; the help center says the number and values can differ by server."
+    notes_ja: "mixhost.jp自体はCloudflare配下。顧客ドメインの標準ネームサーバーはns1/ns2.mixhost.jp（契約サーバーにより数や値が異なる場合あり、と公式ヘルプに記載）。"
+    news: https://mixhost.jp/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（2026年10月22日）：10月22日10時18分ごろ、全サーバーでPHPの修正パッケージの適用を完了。CloudLinuxのパッチによりPHP 5.2〜8.5の全バージョンが対象で、サポート終了版も含む。バージョン番号は変えずに適用したため、phpinfoやWordPressのサイトヘルスの表示は従来のまま（例：8.4.26）。対象はmixhostレンタルサーバー、アダルトレンタルサーバー、海外レンタルサーバー。"
+        summary_en: "Official notice (2026-10-22): PHP fix packages applied on all servers by about 10:18 on Oct 22. Via CloudLinux, every PHP version from 5.2 to 8.5 was patched, including end-of-life versions. The version number was not changed, so phpinfo and WordPress Site Health still show the old version (e.g. 8.4.26). Covers the standard, adult and overseas rental server plans."
+        customer_action: "お客様側の作業は不要。表示上のバージョン番号が修正版より古く見えても正常。8.2未満を使っている場合は、急ぐ必要はないがサポート対象のバージョン（8.2以上）への移行を検討。"
+        customer_action_en: "No customer action needed. A displayed version older than the fixed release is expected. Sites below PHP 8.2 should plan a move to a supported version (8.2+), though not urgently."
+        source: https://mixhost.jp/news/1974
+        verified_at: "2026-10-24"
+
+  - id: coreserver
+    name: "CORESERVER (GMO DigiRock)"
+    name_ja: "コアサーバー（GMOデジロック）"
+    kind: hosting
+    asns: [37907]
+    #   37907: dig +short A s1.coreserver.jp -> 202.172.28.2; Cymru 2026-10-24 -> "37907 | 202.172.24.0/21 | JP | apnic"; AS name "DIGIROCK - DigiRock, Inc., JP"
+    as_name_contains: ["DIGIROCK"]
+    #   DIGIROCK: dig +short TXT AS37907.asn.cymru.com -> "37907 | JP | apnic | 2006-01-30 | DIGIROCK - DigiRock, Inc., JP"
+    notes: "Operated by GMO DigiRock, which also runs Value Domain. Customer domains usually use the Value Domain name servers (see value-domain), so the web host is recognised by the network. GMO DigiRock's XREA, VALUESERVER and One Rental Server run in GMO Internet's networks and show as GMO Internet Group."
+    notes_ja: "GMOデジロック（バリュードメインの運営会社）の運営。顧客ドメインは通常バリュードメインのネームサーバーを使う（value-domain 参照）ため、Webの事業者はネットワークで判別する。同社のXREA・バリューサーバー・OneレンタルサーバーはGMOインターネットのネットワークで動いており、GMOインターネットグループと表示される。"
+    news: https://status.value-domain.com/information/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（バリュードメインの稼働状況ページ、10月21日掲載）：CORESERVER V1は10月22日0:50、V2は11:13に全サーバーのメンテナンスが完了。提供中の全PHPバージョン（V1は5.3〜8.5、V2は5.2〜8.5）で脆弱性への対応を完了しており、利用者側でのPHPバージョン変更は不要。V2の告知: https://status.value-domain.com/information/detail/?info_id=917"
+        summary_en: "Official notice (Value Domain status page, posted Oct 21): maintenance finished on all servers at 00:50 on Oct 22 for CORESERVER V1 and at 11:13 for V2. Every offered PHP version (5.3-8.5 on V1, 5.2-8.5 on V2) is fixed, and customers need not change their PHP version. V2 notice: https://status.value-domain.com/information/detail/?info_id=917"
+        customer_action: "今回の対策のための作業は不要。古いPHP（8.2未満）を使っている場合は、バックアップと動作確認のうえサポート対象のバージョンへの移行を検討。"
+        customer_action_en: "No action needed for this fix. Sites on old PHP (below 8.2) should plan a move to a supported version after a backup and test."
+        source: https://status.value-domain.com/information/detail/?info_id=916
+        verified_at: "2026-10-24"
+
+  - id: kagoya
+    name: "KAGOYA"
+    name_ja: "カゴヤ・ジャパン"
+    kind: hosting
+    asns: [24282]
+    #   24282: dig +short TXT AS24282.asn.cymru.com -> "24282 | JP | apnic | 2004-10-19 | KIR - KAGOYA JAPAN Inc., JP"; docum…
+    as_name_contains: ["KAGOYA"]
+    #   KAGOYA: dig +short TXT AS24282.asn.cymru.com -> "... | KIR - KAGOYA JAPAN Inc., JP"
+    ns_suffixes: ["kagoya.net"]
+    #   kagoya.net: https://www.kagoya.jp/option/domain-domain_settings/
+    notes: "Covers rental, dedicated, VPS and FLEX. On FLEX and VPS the customer runs PHP."
+    notes_ja: "レンタルサーバー・専用サーバー・VPS・FLEXを含む。FLEXとVPSではPHPは利用者が管理。"
+    news: https://www.kagoya.jp/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "in_progress"
+        confidence: official
+        date: "2026-10-23"
+        summary: "公式発表（10月23日12:30更新）：レンタルサーバープランでは修正版へのアップデート作業が完了（PHP 7.4、8.1、8.2、8.3、8.4、8.5系）。一方、マネージド専用・共用・WordPress専用サーバープランの恒久対応は引き続き調整中で、時期は示されていない。攻撃や情報漏えいは確認されていないと発表。バージョン表示が変わるかどうかは記載なし。10月23日18:17時点の状況告知では、各サービスは稼働中だが多くのコントロールパネルは停止中。"
+        summary_en: "Official (updated Oct 23 12:30): update to fixed versions complete on the rental server plans (PHP 7.4, 8.1, 8.2, 8.3, 8.4, 8.5). For managed dedicated, shared and WordPress dedicated plans a permanent fix is still being worked out, with no date. No attacks or leaks confirmed. The notice does not say whether the displayed version changes. A separate status notice (as of Oct 23 18:17) shows services running but most control panels stopped."
+        customer_action: "レンタルサーバープランは作業不要。マネージド専用・共用・WordPress専用プランは、恒久対応の告知まで、メンテナンスページへの切替や public_html 直下の .htaccess によるアクセス制限など一時的なリスク低減を検討。FLEXはOSとミドルウェアが利用者管理のため、自分でPHPを確認・更新。"
+        customer_action_en: "Rental server plans: no action. Managed dedicated, shared and WordPress dedicated plans: until a permanent fix is announced, consider a maintenance page or an .htaccess access restriction under public_html. FLEX: OS and middleware are customer-managed, so check and update PHP yourself."
+        source: https://www.kagoya.jp/news/2026102337094/
+        verified_at: "2026-10-24"
+
+  - id: cpi
+    name: "CPI (KDDI Web Communications)"
+    name_ja: "CPI（KDDIウェブコミュニケーションズ）"
+    kind: hosting
+    asns: [9597]
+    #   9597: dig +short TXT AS9597.asn.cymru.com -> "9597 | JP | apnic | 1999-08-05 | CPI-NET - KDDI Web Communications Inc…
+    ns_suffixes: ["cpi.ad.jp"]
+    #   cpi.ad.jp: https://www.cpi.ad.jp/support/move/change/
+    notes: "Covers shared and managed dedicated plans. Offered PHP versions and patch status differ by plan and contract period."
+    notes_ja: "共用サーバーとマネージド専用サーバーを含む。プランと契約時期によって提供PHPバージョンと対応状況が異なる。"
+    news: https://www.cpi.ad.jp/news/support-info/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "in_progress"
+        confidence: official
+        date: "2026-10-27"
+        summary: "公式発表（10月27日15時10分更新）：SV-Basic、ビジネス スタンダード、CHM-11Z〜13Z、CHM-21Z〜23ZではPHP 8.2.35・8.3.36・8.4.27の修正版を10月22日に適用済み。ACE01（2015年9月〜2019年9月契約）には10月27日にパッチ適用版の7.4.34と8.0.30を適用済み。SV-Basic・ビジネス スタンダード（2022年9月〜2025年12月契約）・CHM-11Z〜23Zの7.4.xは10月29日に適用予定。それ以外の旧バージョンや旧プラン（G、X、Z、ZZ、2015年9月以前契約のACE01、Pro、V、MG、CHM、CHM-S、CHM-Zなど）は今回のパッチの提供対象外で、php.iniでの緩和策を案内。再開したコントロールパネルのPHPバージョン表示は最新ではなく、後日更新予定。利用者のサーバー自体は停止しておらず、不正アクセスは確認されていない。"
+        summary_en: "Official (updated Oct 27 15:10): SV-Basic, Business Standard and CHM-11Z to 23Z got the fixed releases 8.2.35, 8.3.36 and 8.4.27 on Oct 22. ACE01 (contracts Sep 2015 to Sep 2019) got patched 7.4.34 and 8.0.30 on Oct 27. A patched 7.4.x is scheduled for Oct 29 on SV-Basic, Business Standard (contracts Sep 2022 to Dec 2025) and CHM-11Z to 23Z. Other old versions and legacy plans (G, X, Z, ZZ, ACE01 before Sep 2015, Pro, V, MG, CHM, CHM-S, CHM-Z etc.) get no patch; customers are told to apply php.ini mitigations. The resumed control panel still shows the old version number and will be updated later. Customer servers were not stopped; no unauthorized access confirmed."
+        customer_action: "コントロールパネルで利用中のプランとPHPバージョンを確認。7.4・8.0を使っていてパッチ適用版の提供予定があるプランは、提供後に切替える（メジャー・マイナーバージョンが変わる場合は.htaccessの変更が必要）。それまでの間や提供対象外のバージョンでは、修正済みバージョン（8.2.35／8.3.36／8.4.27）へ切替えるか、公式案内のphp.ini設定（session.upload_progress.enabled = Off など）を適用。php.iniの変更はCPIのサポート対象外。パネルの表示が古くても修正版は適用済みの場合がある。"
+        customer_action_en: "Check your plan and PHP version. If you run 7.4 or 8.0 on a plan with a patched build scheduled, switch to it once released (a .htaccess change is needed if the major or minor version changes). Until then, and on versions with no patch, switch to a patched version (8.2.35/8.3.36/8.4.27) where available, or apply the php.ini settings in the notice (e.g. session.upload_progress.enabled = Off); CPI does not support php.ini changes. The panel may show an old version even where the fix is applied."
+        source: https://www.cpi.ad.jp/news/support-info/261022/
+        verified_at: "2026-10-28"
+
+  - id: colorfulbox
+    name: "ColorfulBox"
+    name_ja: "カラフルボックス"
+    kind: hosting
+    ns_suffixes: ["cbsv.jp"]
+    #   cbsv.jp: https://help.colorfulbox.jp/article/ns-distinction/
+    notes: "ns1/ns2.cbsv.jp are also the default NS for domains registered at ColorfulBox. Sites on the CDN option use different name servers."
+    notes_ja: "カラフルボックスで取得したドメインのデフォルトのネームサーバーもns1/ns2.cbsv.jp。CDNオプション利用時は別のネームサーバーになる。"
+    news: https://www.colorfulbox.jp/info/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（2026年10月22日）：10月21日に公表されたPHPの脆弱性への対策を、共有サーバー、カラフルビジネス、タダサーバー、専用サーバーの全サーバーで10月22日朝までに完了。PHP 8.2〜8.5は最新の修正版に更新し、7.4・8.0・8.1など旧バージョンにもサーバー側で修正と保護措置を適用。お知らせはCVE番号を記載しておらず、旧バージョンのバージョン表示が変わるかどうかも明記していない。"
+        summary_en: "Official (2026-10-22): fix for the PHP vulnerability published Oct 21 completed on all servers (shared, Colorful Business, Tada Server, dedicated) by the morning of Oct 22. PHP 8.2-8.5 updated to the latest fixed releases; older versions such as 7.4, 8.0 and 8.1 got server-side fixes and protective measures. The notice gives no CVE number and does not say whether the displayed version changes on older branches."
+        customer_action: "お客様側でのPHPバージョン変更は不要（WordPressなどのCMS利用者も同様）。旧バージョンは修正版のリリース番号にならないため、表示上のバージョンで修正済みかを判断しないこと。"
+        customer_action_en: "No PHP version change needed, including for WordPress and other CMS users. Older branches have no upstream fixed release, so do not judge patch status by the displayed version."
+        source: https://www.colorfulbox.jp/info/detail/?id=231
+        verified_at: "2026-10-24"
+
+  - id: rakko
+    name: "Rakko Server"
+    name_ja: "ラッコサーバー"
+    kind: hosting
+    ns_suffixes: ["rakko.zone"]
+    #   rakko.zone: https://rakkoserver.com/knowledge/1045/
+    notes: "Operated by Rakko Inc. Customer name servers are ns1/ns2.rakko.zone."
+    notes_ja: "運営はラッコ株式会社。ネームサーバーはns1/ns2.rakko.zone。"
+    news: https://rakko.inc/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "ラッコ株式会社の公式発表（2026年10月22日）：php2shell（CVE-2026-109618、CVE-2026-109619）について、10月21日19時ごろから予防的にサービスを停止し、10月22日早朝にラッコサーバーで提供する全PHPバージョンへセキュリティ修正を適用。同日8時43分に全サービスを再開。攻撃を模した検証で修正の有効性を確認し、不正アクセスの痕跡は見つかっていないと発表。バージョン表示が変わるかどうかは記載なし。"
+        summary_en: "Rakko Inc. official notice (2026-10-22) on php2shell (CVE-2026-109618/109619): services paused as a precaution from about 19:00 on Oct 21; the fix was applied to every PHP version offered on Rakko Server early on Oct 22; all services resumed at 08:43 that day. A simulated-attack test confirmed the fix, and no sign of unauthorized access was found. The notice does not say whether the displayed version changes."
+        customer_action: "ラッコサーバー利用者の作業は不要。古いPHP（8.1以前など）を使っている場合は、サポート中のバージョンへの切替を検討。"
+        customer_action_en: "No action needed for Rakko Server customers. Sites on old PHP (8.1 or older) should consider moving to a supported version."
+        source: https://rakko.inc/news/php2shell-response/
+        verified_at: "2026-10-24"
+
+  - id: ablenet
+    name: "ABLENET"
+    name_ja: "ABLENET"
+    kind: hosting
+    news: https://shared.ablenet.jp/index.php?rp=/announcements
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-23"
+        summary: "公式発表（10月23日14:32の続報）：php2shell（CVE-2026-109618、CVE-2026-109619）について、10月22日早朝までにABLENETレンタルサーバーで提供する全PHPバージョン（5.6〜8.5）へセキュリティ修正の適用を完了。バージョン番号は変えずに適用したため、WordPressのサイトヘルスなどの表示は従来のまま。"
+        summary_en: "Official follow-up (Oct 23 14:32) on php2shell (CVE-2026-109618/109619): security fix applied to every PHP version offered on ABLENET rental servers (5.6-8.5) by early Oct 22. Version numbers were not changed, so WordPress Site Health and similar tools still show the old version."
+        customer_action: "脆弱性自体への作業は不要。PHP 5系・7系を使っている場合は、動作確認のうえ8.4以上への移行を検討。"
+        customer_action_en: "No action needed for the vulnerability itself. Sites on PHP 5.x or 7.x should consider moving to 8.4+ after testing."
+        source: https://shared.ablenet.jp/index.php?rp=/announcements/18/%E9%87%8D%E8%A6%81PHP%E3%81%AE%E8%84%86%E5%BC%B1%E6%80%A7php2shellCVE-2026-109618CVE-2026-109619%E3%81%B8%E3%81%AE%E5%AF%BE%E5%BF%9C%E7%8A%B6%E6%B3%81%E3%81%AE%E3%81%8A%E7%9F%A5%E3%82%89%E3%81%9B%E7%B6%9A%E5%A0%B1.html
+        verified_at: "2026-10-24"
+
+  - id: webarena
+    name: "WebARENA (NTTPC)"
+    name_ja: "WebARENA（NTTPC）"
+    kind: hosting
+    asns: [2514]
+    #   2514: dig +short TXT AS2514.asn.cymru.com -> "2514 | JP | apnic | 2002-04-05 | InfoSphere - NTT PC Communications, I…
+    ns_suffixes: ["ns3.sphere.ad.jp", "ns4.sphere.ad.jp", "asns1.customer.ne.jp", "asns2.customer.ne.jp"]
+    #   ns3.sphere.ad.jp: https://web.arena.ne.jp/pdf/Suite_manual1.pdf
+    #   ns4.sphere.ad.jp: https://web.arena.ne.jp/pdf/Suite_manual1.pdf
+    #   asns1.customer.ne.jp: https://web.arena.ne.jp/support/pdf/suitex_suitetov2mp.pdf
+    #   asns2.customer.ne.jp: https://web.arena.ne.jp/support/pdf/suitex_suitetov2mp.pdf
+    notes: "NTTPC runs PHP on the SuiteX/SuiteS shared hosting. On the Indigo/IndigoPro VPS plans the customer runs PHP."
+    notes_ja: "共用サーバー SuiteX/SuiteS は事業者がPHPを運用。VPSの Indigo／IndigoPro では利用者がPHPを管理する。"
+    news: https://web.arena.ne.jp/news/2026/
+    #   Checked 2026-10-26: lists the cited notice; one page per year, so move it to 2027 in January.
+    incidents:
+      php2shell:
+        status: "in_progress"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（2026年10月22日）によると、WebARENA SuiteX/SuiteS では当初、脆弱性の緩和策と海外からのWebアクセス停止を実施していたが、10月22日18:00以降順次、国内からのWebアクセスも停止した。再開時期と今後の手続きはお客さまサポートページで告知するとしている。VPSの Indigo／IndigoPro／Wasabi は10月23日14:00から管理画面を停止しているが、稼働中のVMは引き続き利用できる。"
+        summary_en: "Official notice (2026-10-22): WebARENA SuiteX/SuiteS first applied a mitigation and blocked web access from overseas, then from 18:00 on Oct 22 stopped domestic web access too, rolling out in sequence. Resumption timing and next steps will be posted on the customer support page. A separate notice (2026-10-23, citing CVE-2026-109618/109619) says the Indigo/IndigoPro/Wasabi admin screens have been stopped since 14:00 on Oct 23. Running VMs keep working."
+        customer_action: "SuiteX/SuiteS のサイトは現在表示されないため、お客さまサポートページで再開時期と手続きを確認する。Indigo などのVPSでは、サーバー上のPHPを管理者（自社または制作会社）が更新する。"
+        customer_action_en: "SuiteX/SuiteS sites are currently offline: watch the customer support page for when they come back and what to do. On Indigo VPS, whoever administers the server must update PHP on it."
+        source: https://web.arena.ne.jp/news/2026/1022_2.html
+        verified_at: "2026-10-24"
+
+  - id: biz-mail-web
+    name: "Biz Mail & Web (NTT Communications)"
+    name_ja: "Bizメール＆ウェブ（NTTコミュニケーションズ）"
+    kind: hosting
+    ns_suffixes: ["mwns1.customer.ne.jp", "mwns2.customer.ne.jp"]
+    #   mwns1.customer.ne.jp: https://support.ntt.com/mw-businessr3/faq/detail/pid2300001z75/
+    #   mwns2.customer.ne.jp: https://support.ntt.com/mw-businessr3/faq/detail/pid2300001z75/
+    mx_suffixes: ["mwbgw1.ocn.ad.jp", "mwbgw2.ocn.ad.jp"]
+    #   mwbgw1.ocn.ad.jp: https://bizmw.jp/b-manual/mwbr3_setup/oid0047/
+    #   mwbgw2.ocn.ad.jp: https://bizmw.jp/b-manual/mwbr3_setup/oid0047/
+    notes: "NTT docomo business (formerly NTT Communications) shared hosting; the vendor runs PHP."
+    notes_ja: "NTTドコモビジネス（旧NTTコミュニケーションズ）の共用レンタルサーバー。PHPは事業者が運用する。"
+    news: https://support.ntt.com/mw-businessr3/information/search/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（2026年10月21日掲載、22日20:40更新）によると、セキュリティ上の脆弱性を確認したとして予防的な緊急メンテナンスを行い、Webサービスを一時停止したうえで、提供PHPを8.3系の最新版へ変更した。10月22日13:30頃から順次再開し、20:23に全ユーザーで再開した。告知はPHPの脆弱性名やCVE番号を挙げておらず、不正アクセスなどの被害は確認されていないとしている。"
+        summary_en: "Official notice (posted 2026-10-21, updated 2026-10-22 20:40): after confirming a security vulnerability, the vendor ran preventive emergency maintenance, paused web service, and moved the PHP it provides to the latest 8.3 release. Web service came back in stages from about 13:30 on Oct 22 and was restored for all users by 20:23. The notice does not name the PHP vulnerability or any CVE, and says no unauthorized access had been confirmed."
+        customer_action: "PHPのバージョンが変わったため、サイトが従来どおり動くか確認する。PHPのバージョンは元に戻せない。"
+        customer_action_en: "PHP was changed, so check that your site still works as before. The PHP version cannot be switched back."
+        source: https://support.ntt.com/mw-businessr3/information/detail/pid2500002hgi/
+        verified_at: "2026-10-24"
+
+  - id: movabletype-cloud
+    name: "Movable Type Cloud (Six Apart)"
+    name_ja: "Movable Type クラウド版（シックス・アパート）"
+    kind: hosting
+    cname_suffixes: ["movabletype.biz"]
+    #   movabletype.biz: https://www.movabletype.jp/documentation/cloud/get-started/dns-newsite.html
+    notes: "Kind is hosting because Six Apart manages PHP on each customer instance. Recognised by CNAME to *.movabletype.biz; bare domains use an instance-specific IP and are not recognised. MovableType.net is a separate service."
+    notes_ja: "事業者がインスタンスごとにPHPを管理するマネージド環境のため kind は hosting とした。CNAME（●●-●●.movabletype.biz）で判別できる。wwwなしのドメインはインスタンス固有のIPをAレコードに設定するため判別できない。MovableType.net は別サービス。"
+    news: https://www.sixapart.jp/movabletype/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（10月22日）：10月22日 0:12 にクラウド版のPHPを 8.3.36 にアップデートし、CVE-2026-109618 と CVE-2026-109619 への対策を完了。自動アップデートを無効にしている環境も含め、すべての利用者の環境で対応済み。リリースノートでは 8.3.31 からの更新で、php.ini の session.upload_progress.enabled も無効化。Movable Type 本体のバージョン番号は変わっていない。10月26日の追記で、10月23日に公開されたPHPの別の脆弱性 CVE-2026-115560 もこのメンテナンスで対応済みとしている。"
+        summary_en: "Official (Oct 22): at 00:12 on Oct 22 Movable Type Cloud's PHP was updated to 8.3.36, completing the fix for CVE-2026-109618 and CVE-2026-109619 in every customer environment, including those with auto-update disabled. The release notes say the update was from 8.3.31 and that session.upload_progress.enabled was set to 0. The Movable Type version number itself did not change. An addendum on Oct 26 says the same maintenance also fixed CVE-2026-115560, a further PHP vulnerability published on Oct 23."
+        customer_action: "クラウド版の利用者の作業は不要。ソフトウェア版やAMI版を自社サーバーで動かしている場合は、Movable Type ではなくサーバーのPHP本体を修正版に更新する。"
+        customer_action_en: "No action for Cloud customers. If you run the software or AMI edition on your own server, update the server's PHP itself (not Movable Type) to a fixed release."
+        source: https://www.sixapart.jp/movabletype/news/2026/10/22-0020.html
+        verified_at: "2026-10-26"
+
+  # ---- Global shared / managed hosting. The same rule: an operator's network entry comes before the services on it.
+
+  - id: godaddy
+    name: "GoDaddy"
+    name_ja: "GoDaddy"
+    kind: hosting
+    asns: [26496, 398101, 398787]
+    #   26496: dig +short TXT AS26496.asn.cymru.com -> "AS-26496-GO-DADDY-COM-LLC - GoDaddy.com, LLC, US"; Managed WordPress temporary site 4b3.d7f.myftpupload.com -> 50.62.195.1 (PTR 1.195.62.50.host.secureserver.net), Cymru origins 26496 (50.62.192.0/18) and 398787 (50.62.195.0/24) (2026-10-26)
+    #   398101: dig +short TXT AS398101.asn.cymru.com -> "GO-DADDY-COM-LLC - GoDaddy.com, LLC, US"; announces /22-/24 slices inside 26496's blocks: 208.109.232.99 (PTR 99.232.109.208.host.secureserver.net) -> "26496 | 208.109.192.0/18" and "398101 | 208.109.232.0/22"; 166.62.80.122 -> "398101 | 166.62.80.0/20" (2026-10-26)
+    #   398787: dig +short TXT AS398787.asn.cymru.com -> "GO-DADDY-COM-LLC - GoDaddy.com, LLC, US"; Managed WordPress temporary site gx3.cdb.myftpupload.com -> 160.153.137.40 (PTR 40.137.153.160.host.secureserver.net), origin "398787 | 160.153.137.0/24" (2026-10-26)
+    as_name_contains: ["GO-DADDY"]
+    #   GO-DADDY: Cymru AS names: AS26496 'AS-26496-GO-DADDY-COM-LLC', AS398101 and AS398787 'GO-DADDY-COM-LLC', all GoDaddy.com, LLC
+    notes: "GoDaddy's network (AS26496, AS398101, AS398787) also carries its VPS and dedicated servers, where the customer runs PHP, and its domain-forwarding servers (redirect-*.secureserver.net); an address there cannot be told apart from Web Hosting or Managed WordPress by DNS. Domains registered at GoDaddy use its name servers (*.domaincontrol.com, see godaddy-dns) wherever the site is hosted, so the name servers do not mean the site is hosted at GoDaddy."
+    notes_ja: "GoDaddyのネットワーク（AS26496・AS398101・AS398787）には、利用者がPHPを管理するVPS・専用サーバーや、ドメイン転送用のサーバー（redirect-*.secureserver.net）も含まれ、DNSだけではWeb HostingやManaged WordPressと区別できない。GoDaddyで登録したドメインは、サイトがどこにあってもGoDaddyのネームサーバー（*.domaincontrol.com、godaddy-dns 参照）を使うため、ネームサーバーだけではGoDaddyでホストされているとは言えない。"
+    news: https://www.godaddy.com/resources/category/news
+    #   Checked 2026-10-26: lists the cited post among other news; /resources/news/ itself returns 404 and the /resources/feed RSS does not include it.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式ブログ（10月21日〜23日更新）：Managed WordPressは10月21日19:30（UTC）、Windows Hostingは10月22日1:20、Web Hosting（cPanel）は10月22日13:30に、それぞれ「すべてのPHPバージョンにパッチを適用した」と報告。Web HostingはCloudLinuxのパッケージを使うため、修正済みでもバージョン番号が変わらない場合があり、ビルド日が2026年10月21日以降かで確認するよう案内している。VPSは利用者がPHPを管理する。10月23日には別の未修正の脆弱性CVE-2026-115560が公表されたとして、VPSではsession.upload_progress.enabledを0にするよう案内。記事の掲載日表示は10月20日で、本文の日付と食い違う。"
+        summary_en: "Official blog (updated Oct 21-23): GoDaddy reports it 'patched all PHP versions' on Managed WordPress at 19:30 UTC on Oct 21, on Windows Hosting at 01:20 on Oct 22 and on Web Hosting (cPanel) at 13:30 on Oct 22. Web Hosting uses CloudLinux packages, so a patched build may keep its old version number; the post says to check for a build date of Oct 21 2026 or later. VPS customers run PHP themselves. On Oct 23 it noted a separate, still unpatched CVE-2026-115560 and told VPS users to set session.upload_progress.enabled to 0. The post's header date (Oct 20) does not match its contents."
+        customer_action: "Managed WordPress・Windows Hosting・Web Hostingでは対応不要。Web HostingではphpinfoのBuild Dateが2026年10月21日以降か確認する。PHP 8.1以前は開発元の修正がないため、8.2以降への切替を推奨されている。VPS利用者は自分でPHPを修正版へ更新し、PHPとWebサーバーを再起動して、session.upload_progress.enabledを0にする。"
+        customer_action_en: "No action on Managed WordPress, Windows Hosting or Web Hosting. On Web Hosting, check that phpinfo's build date is Oct 21 2026 or later. PHP 8.1 and older get no upstream fix; GoDaddy recommends 8.2 or later. VPS customers must update PHP to a fixed release, restart PHP and the web server, and set session.upload_progress.enabled to 0."
+        source: https://www.godaddy.com/resources/news/important-php-security-update-what-website-owners-need-to-do
+        verified_at: "2026-10-26"
+
+  - id: hostinger
+    name: "Hostinger"
+    name_ja: "Hostinger"
+    kind: hosting
+    asns: [47583]
+    #   47583: dig +short TXT AS47583.asn.cymru.com -> "AS-HOSTINGER - Hostinger International Limited, CY"; pifarosdesign.com (NS ns1/ns2.dns-parking.com) -> 147.93.77.108, origin "47583 | 147.93.77.0/24"; temporary site darkgreen-reindeer-896474.hostingersite.com -> 147.93.77.135, same (2026-10-26)
+    as_name_contains: ["HOSTINGER"]
+    #   HOSTINGER: dig +short TXT AS47583.asn.cymru.com -> "... AS-HOSTINGER - Hostinger International Limited, CY"
+    ns_suffixes: ["dns-parking.com"]
+    #   dns-parking.com: dig +short NS pifarosdesign.com / zeluga.com -> ns1.dns-parking.com, ns2.dns-parking.com, both resolving into AS47583; Hostinger's own hstgr.net zone uses the same name servers (dig +short NS hstgr.net); https://www.hostinger.com/support/1583247-where-can-i-find-nameservers/ gives "value1/value2.dns-parking.com" for VPS (2026-10-26)
+    cname_suffixes: ["cdn.hstgr.net"]
+    #   cdn.hstgr.net: dig +short CNAME www.pifarosdesign.com -> www.pifarosdesign.com.cdn.hstgr.net; every *.hostingersite.com temporary site checked -> free.cdn.hstgr.net (2026-10-26)
+    notes: "Hostinger's name servers (*.dns-parking.com) also serve its VPS, where the customer runs PHP, and domains registered at Hostinger, so the name servers alone do not prove the site is on Hostinger's managed hosting. Part of its address space (213.210.57.0/24) is also covered by AS8851 (GCI) prefixes, so the ASN can read as GCI there; the cdn.hstgr.net CNAME then identifies Hostinger, and a host with only an A record there shows an unmatched GCI network."
+    notes_ja: "Hostingerのネームサーバー（*.dns-parking.com）は、利用者がPHPを管理するVPSや、Hostingerで登録したドメインでも使われるため、ネームサーバーだけではマネージドのホスティングとは言い切れない。一部のアドレス（213.210.57.0/24）はAS8851（GCI）の経路にも含まれ、ASがGCIと表示される場合がある。その場合はCNAME（cdn.hstgr.net）でHostingerと分かり、Aレコードだけのホストは一覧外のGCIのネットワークと表示される。"
+    news: https://www.hostinger.com/blog/feed
+    #   Checked 2026-10-26: the RSS lists the cited post; the status page's history.rss does not list unresolved incidents.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（ブログ10月21日、22日・23日更新／ステータスページ）：10月22日6:44（UTC）までに、VPSを除くすべてのホスティングサーバー（Web・Cloud・Agency・cPanel）でPHPの修正を完了。Web・Cloud・cPanelでは5.2〜8.5のすべてのバージョンに修正済みビルドを配備した。修正は既存バージョンに組み込んだため、8.5.11のように番号が変わらない場合がある（hPanelのPHP Info Build Dateが2026年10月21日以降なら適用済み）。10月23日に公表されたCVE-2026-115560も、VPS以外は10月21日の対策で保護済みとしている。VPSは利用者がPHPを管理する。"
+        summary_en: "Official (blog of Oct 21, updated Oct 22-23, plus status page): by 06:44 UTC on Oct 22 the PHP fix was installed on all hosting servers except VPS (Web, Cloud, Agency and cPanel), with patched builds for every version from 5.2 to 8.5 on Web, Cloud and cPanel. The fix was built into the existing versions, so the number may stay at e.g. 8.5.11; a PHP Info build date of Oct 21 2026 or later in hPanel means it is applied. Hostinger says the Oct 21 changes also cover CVE-2026-115560 (disclosed Oct 23) on all plans except VPS. VPS customers run PHP themselves."
+        customer_action: "VPS以外は対応不要。VPS利用者はPHPを8.5.12／8.4.27／8.3.36／8.2.35へ更新して再起動する（すぐ更新できない場合はphp.iniかPHP-FPMの設定でsession.upload_progress.enabled = Offにし、全ワーカーを再起動）。PHP 8.2は2026年12月31日でセキュリティ修正が終わるため、8.3以降への移行を検討。"
+        customer_action_en: "Nothing to do on any plan except VPS. VPS customers should update PHP to 8.5.12, 8.4.27, 8.3.36 or 8.2.35 and restart it (if they cannot yet, set session.upload_progress.enabled = Off in php.ini or the PHP-FPM pool and restart all workers). PHP 8.2 stops getting security fixes on Dec 31 2026, so plan a move to 8.3 or newer."
+        source: https://www.hostinger.com/blog/protecting-php2shell/
+        verified_at: "2026-10-26"
+
+  - id: ionos
+    name: "IONOS"
+    name_ja: "IONOS"
+    kind: hosting
+    asns: [8560]
+    #   8560: dig +short TXT AS8560.asn.cymru.com -> "IONOS-AS - IONOS SE, DE"; customer domains with IONOS name servers (meemawswebsites.tech, cstreetsewing.com, fernsehkraft.de) -> 212.227.222.82-87, origin "8560 | 212.227.222.0/23"; ionos.com -> 74.208.4.76, origin "8560 | 74.208.0.0/16" (2026-10-26)
+    as_name_contains: ["IONOS-AS"]
+    #   IONOS-AS: dig +short TXT AS8560.asn.cymru.com -> "8560 | DE | ripencc | 1997-11-26 | IONOS-AS - IONOS SE, DE"
+    notes: "IONOS also sells VPS, cloud and dedicated servers, where the customer runs PHP; an address in AS8560 does not say which product it is. Domains registered at IONOS use its name servers (ns1ZZZ.ui-dns.*, see ionos-dns) wherever the site is hosted."
+    notes_ja: "IONOSはVPS・クラウド・専用サーバーも提供しており、これらではPHPは利用者が管理する。AS8560のアドレスだけではどの製品か分からない。IONOSで登録したドメインは、サイトがどこにあってもIONOSのネームサーバー（ns1ZZZ.ui-dns.*、ionos-dns 参照）を使う。"
+    news: https://www.ionos-status.com/history.rss
+    #   Checked 2026-10-26: the RSS lists the cited incident.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式ステータス（10月21日11:31〜22日6:10、米東部時間）：10月22日に解決とし、「IONOSが自社で運用するすべてのプラットフォームに公式の更新を展開した」「利用者の対応は不要」と告知。対象のPHP利用製品はWeb Hosting、Managed WordPress、MyWebsite 8など。ヘルプ記事では、開発元のサポートが終了したPHPバージョンにも必要なセキュリティ更新を適用したため現在のバージョンを使い続けられるとし、PHP Extended Supportの利用者も保護されているとする。バージョンごとの完了時刻や、表示上のバージョン番号が変わるかどうかは記載がない。VPS・専用サーバーは利用者が更新する。"
+        summary_en: "Official status incident (Oct 21 11:31 to Oct 22 06:10, US Eastern), resolved on Oct 22: 'IONOS already rolled out the official updates across all platforms it operates itself' and 'Customers do not need to take any action.' PHP products covered include Web Hosting, Managed WordPress and MyWebsite 8. The help article adds that versions no longer supported upstream also received the needed security updates, so customers can keep their current version, and that PHP Extended Support users are protected. No per-version times are given, nor whether displayed version numbers change. VPS and dedicated customers must update PHP themselves."
+        customer_action: "IONOSが管理するPHP（契約画面でバージョンを選べるもの）では対応不要。VPS・専用サーバーの利用者はただちにPHPを修正版へ更新して全PHPサービスを再起動し、ログと不審な.phpファイルを確認する。PHP 8.1以前はできるだけ早く現行バージョンへの切替を検討。IONOSを名乗るメールのリンクは踏まない。"
+        customer_action_en: "No action where IONOS manages PHP (you pick the version in your IONOS account). VPS and dedicated customers must update PHP now, restart all PHP services, and check logs and unknown .php files. Plan a move off PHP 8.1 and older soon. Do not follow links in emails claiming to be from IONOS about this."
+        source: https://www.ionos-status.com/incidents/3fkdbfd8zldr
+        verified_at: "2026-10-26"
+
+  - id: ovhcloud
+    name: "OVHcloud"
+    name_ja: "OVHcloud"
+    kind: cloud
+    asns: [16276]
+    #   16276: dig +short TXT AS16276.asn.cymru.com -> "16276 | FR | ripencc | 2001-02-15 | OVH - OVH SAS, FR"; VPS (vps-*.vps.ovh.net), dedicated (nsNNN.ip-*.eu) and Web Hosting clusters (clusterNNN.hosting.ovh.net) all originate here (dig -x on 51.75.200.10, 51.83.100.10, 54.36.91.62; Cymru 2026-10-26)
+    as_name_contains: ["OVH"]
+    #   OVH: Cymru AS names "OVH - OVH SAS, FR" (16276) and "OVH-TELECOM - OVH SAS, FR" (35540)
+    ns_suffixes: ["ovh.net"]
+    #   ovh.net: dig +short NS ovh.net -> ns10..15 / dns10..15.ovh.net (A 5.135.85.109 / 5.39.20.253, origin 16276); seen as the NS of cafe-des-sports.fr (dns113/ns113), mairie-chamonix.fr (dns103), ffrandonnee.fr (ns108), lpo.fr (dns100) (2026-10-26)
+    notes: "OVH's network carries Web Hosting, VPS, dedicated servers and Public Cloud. On VPS, dedicated and Public Cloud the customer runs PHP. OVH's DNS (dnsNN/nsNN.ovh.net) serves domains whatever runs the site, so only a Web Hosting server's reverse name (clusterNNN.hosting.ovh.net) identifies Web Hosting; otherwise the site shows as OVHcloud."
+    notes_ja: "OVHのネットワークではWebホスティング・VPS・専用サーバー・Public Cloudが動いている。VPS・専用サーバー・Public CloudではPHPは利用者が管理する。OVHのDNS（dnsNN／nsNN.ovh.net）はサイトの置き場所に関係なく使われるため、Webホスティングのサーバーの逆引き名（clusterNNN.hosting.ovh.net）で分かる場合だけWebホスティングとし、それ以外はOVHcloudと表示する。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "VPS・専用サーバー・Public CloudはPHPを利用者が管理する。OVHcloudのVPS・専用サーバー向けのphp2shellの告知は見つからなかった（Web Cloudの稼働状況ページはWebホスティングのみが対象）。Webホスティングの対応はOVHcloud Webホスティングのエントリを参照。"
+        summary_en: "On VPS, dedicated servers and Public Cloud the customer runs PHP. No OVHcloud php2shell notice for VPS or dedicated servers was found (the Web Cloud status page covers Web Hosting only). For Web Hosting see the OVHcloud Web Hosting entry."
+        customer_action: "VPS・専用サーバーでPHPを動かしている場合は、サーバー管理者（自社または制作会社）にPHPを8.2.35／8.3.36／8.4.27／8.5.12以降へ更新するよう依頼。8.1以前は修正版がないため、サポート中のブランチへ移行。"
+        customer_action_en: "If PHP runs on a VPS or dedicated server, ask your administrator or agency to update to 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later. PHP 8.1 and older have no upstream fix; move to a supported branch."
+        verified_at: "2026-10-26"
+
+  - id: ovhcloud-webhosting
+    name: "OVHcloud Web Hosting"
+    name_ja: "OVHcloud Webホスティング"
+    kind: hosting
+    asns: [16276]
+    #   16276: shared with ovhcloud. cafe-des-sports.fr (NS dns113.ovh.net) -> 54.36.91.62; Team Cymru origin -> "16276 | 54.36.0.0/16 | FR | ripencc"; dig -x -> cluster027.hosting.ovh.net (2026-10-26)
+    ptr_suffixes: ["hosting.ovh.net", "hosting.cdn.ovh.net"]
+    #   hosting.ovh.net: https://docs.ovhcloud.com/en/guides/web-cloud/web-hosting/clusters-and-shared-hosting-ip lists each cluster's IPs; dig -x on cluster 024's FR/IE/UK/PL/BE addresses (188.165.61.82, 188.165.6.81, 178.32.59.194, 94.23.88.105, 213.32.81.103) -> cluster024.hosting.ovh.net; VPS and dedicated addresses in the same AS read vps-*.vps.ovh.net and nsNNN.ip-*.eu (dig -x 51.75.200.10, 51.83.100.10; 2026-10-26)
+    #   hosting.cdn.ovh.net: the same doc's "Shared CDN" address for cluster 024, 46.105.204.24 -> dig -x cluster024.hosting.cdn.ovh.net (origin 16276, 2026-10-26)
+    notes: "Shared Web Hosting runs on OVH's clusters (clusterNNN.hosting.ovh.net) in AS16276, next to VPS and dedicated servers, and its domains use OVH's general DNS. Only the server's reverse name identifies Web Hosting. Offered PHP versions are 5.4 to 8.5."
+    notes_ja: "共有Webホスティングは AS16276 上のOVHのクラスター（clusterNNN.hosting.ovh.net）で動き、同じネットワークにVPSや専用サーバーもある。ドメインはOVHの共通DNSを使うため、Webホスティングかどうかはサーバーの逆引き名でしか分からない。提供中のPHPは5.4〜8.5。"
+    news: https://web-cloud.status-ovhcloud.com/history.rss
+    #   Checked 2026-10-26: lists the cited maintenance ("[GLOBAL][Web Hosting] - All clusters maintenance notification").
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-26"
+        summary: "公式の稼働状況（全クラスターのメンテナンス告知、10月21日〜26日更新）：10月21日8:00 UTCに回避策、14:50 UTCに全クラスターでWAFルールを適用し、17:53 UTCに「PHP 7.4〜8.5は全クラスターでパッチ適用済み」、10月23日17:07 UTCに「PHP 5.3〜7.3のパッチ展開を完了」と告知。10月26日9:50 UTCにメンテナンスを「完了」とした。適用中は一部サイトで表示の遅延や HTTP 500 エラーが出た。バージョン表示が変わるかどうかは記載なし。"
+        summary_en: "Official status page (all-clusters maintenance, updated Oct 21-26): a workaround from 08:00 UTC on Oct 21 and WAF rules on all clusters at 14:50 UTC; at 17:53 UTC \"All php release from 7.4 to 8.5 have been patch on all clusters\", and at 17:07 UTC on Oct 23 \"completed the deployment of the patch for PHP versions 5.3 through 7.3\". At 09:50 UTC on Oct 26 the maintenance was marked completed. Some sites saw slowness and HTTP 500 errors during the rollout. It does not say whether version strings change."
+        customer_action: "今回の対策のために利用者に求められている作業はない。PHP 8.1以前は公式サポートが終了しているため、OVHcloudの管理画面（.ovhconfig）でサポート対象のPHPへの切替を検討。"
+        customer_action_en: "No customer action has been asked for. PHP 8.1 and older are out of upstream support, so plan a move to a supported PHP in the control panel (.ovhconfig)."
+        source: https://web-cloud.status-ovhcloud.com/incidents/6ct3ggp512xk
+        verified_at: "2026-10-28"
+
+  - id: namecheap
+    name: "Namecheap"
+    name_ja: "Namecheap"
+    kind: cloud
+    asns: [22612]
+    #   22612: dig +short TXT AS22612.asn.cymru.com -> "22612 | US | arin | 2011-06-21 | NAMECHEAP-NET - Namecheap, Inc., US"; shared servers server71/105/312.web-hosting.com and customer VPS-style addresses (67.223.118.1 -> ruddy-sea.rdns.hosting.namecheap.net) originate here (Cymru 2026-10-26)
+    as_name_contains: ["NAMECHEAP"]
+    #   NAMECHEAP: Cymru AS name for 22612: NAMECHEAP-NET
+    ns_suffixes: ["registrar-servers.com"]
+    #   registrar-servers.com: https://www.namecheap.com/support/knowledgebase/article.aspx/9434/10/using-default-nameservers-vs-hosting-nameservers/ ("dns1.registrar-servers.com", "dns2.registrar-servers.com", the default DNS of domains registered at Namecheap)
+    notes: "Namecheap's network carries shared and reseller hosting, VPS and dedicated servers. On VPS and dedicated servers the customer runs PHP. The default registrar DNS (dnsN.registrar-servers.com) is used whatever hosts the site; shared hosting is recognised by its own name servers (dnsN.namecheaphosting.com)."
+    notes_ja: "Namecheapのネットワークでは共有・リセラーホスティング、VPS、専用サーバーが動いている。VPS・専用サーバーではPHPは利用者が管理する。登録時の標準DNS（dnsN.registrar-servers.com）はサイトの置き場所に関係なく使われ、共有ホスティングは専用のネームサーバー（dnsN.namecheaphosting.com）で判別する。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: official
+        date: "2026-10-21"
+        summary: "公式ステータス（10月21日）：「VPSや専用サーバーを自分で管理している場合は、今すぐPHPを修正版に更新してください」と案内。VPS・専用サーバーのPHPは利用者が管理する。共有・リセラーホスティングの対応はNamecheap 共有ホスティングのエントリを参照。"
+        summary_en: "Official status post (Oct 21): \"If you manage your VPS or dedicated server, please update PHP now to the fixed version.\" On VPS and dedicated servers the customer runs PHP. For shared and reseller hosting see the Namecheap Shared Hosting entry."
+        customer_action: "VPS・専用サーバーでPHPを動かしている場合は、サーバー管理者（自社または制作会社）にPHPを8.2.35／8.3.36／8.4.27／8.5.12以降へ更新するよう依頼。8.1以前は修正版がないため、サポート中のブランチへ移行。"
+        customer_action_en: "If PHP runs on a VPS or dedicated server, ask your administrator or agency to update to 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later. PHP 8.1 and older have no upstream fix; move to a supported branch."
+        source: https://www.namecheap.com/status-updates/ongoing-php-security-vulnerability-affecting-hosting-services-october-21-2026/
+        verified_at: "2026-10-26"
+
+  - id: namecheap-hosting
+    name: "Namecheap Shared Hosting"
+    name_ja: "Namecheap 共有ホスティング"
+    kind: hosting
+    asns: [22612]
+    #   22612: shared with namecheap. itcarrera.com (NS dns1/dns2.namecheaphosting.com) -> 162.0.217.211; Team Cymru origin -> "22612 | 162.0.217.0/24 | US | arin"; dig -x -> server330-1.web-hosting.com; likewise ecumenist.us -> business45-1.web-hosting.com, gmbpva.com -> server322-6.web-hosting.com (2026-10-26)
+    ns_suffixes: ["namecheaphosting.com"]
+    #   namecheaphosting.com: https://www.namecheap.com/support/knowledgebase/article.aspx/9434/10/using-default-nameservers-vs-hosting-nameservers/ ("dns1.namecheaphosting.com", "dns2.namecheaphosting.com", for domains pointed to Namecheap shared hosting; records in cPanel's Zone Editor)
+    notes: "Shared (Stellar) and reseller cPanel hosting on CloudLinux and LiteSpeed. Its servers are named serverNNN / premiumNNN / businessNNN.web-hosting.com. Sites whose DNS stays at registrar-servers.com or another DNS host show as Namecheap. EasyWP is a separate product and is not covered by the cited notice."
+    notes_ja: "共有（Stellar）とリセラーのcPanelホスティングで、CloudLinuxとLiteSpeedで動く。サーバー名は serverNNN／premiumNNN／businessNNN.web-hosting.com。DNSを registrar-servers.com や他社のDNSに置いたままのサイトは Namecheap と表示される。EasyWPは別サービスで、このお知らせの対象に含まれていない。"
+    news: https://www.namecheap.com/status-updates/category/hosting/feed/
+    #   Checked 2026-10-26: lists the cited post.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式ステータス（10月21日掲載、解決済み）：10月21日に全プラットフォームで緩和策を実施し、CloudLinuxの修正版をリセラー・共有サーバーへ順次適用して、10月22日16:50 UTCに「メンテナンス完了」。日付のない最終更新で、すべての共有ホスティングサーバーに修正を適用し、PHP 8.2〜8.5は修正版の番号（8.2.35／8.3.36／8.4.27／8.5.12）を表示、5.2〜8.1は番号は変わらないが修正済みで、「提供中の全PHPバージョンが対策済み」としている。"
+        summary_en: "Official status post (posted Oct 21, resolved): mitigations on all platforms on Oct 21, then CloudLinux's fixed packages rolled out to reseller and shared servers, with \"the maintenance have finished\" at 16:50 UTC on Oct 22. An undated final update says the fixes are installed on all Shared Hosting servers: PHP 8.2-8.5 now show the fixed numbers (8.2.35/8.3.36/8.4.27/8.5.12), 5.2-8.1 keep their version numbers but carry the fix, and \"All PHP versions offered on our Shared Hosting servers are patched\"."
+        customer_action: "今回の対策のために必要な作業はない。PHP 5.2〜8.1は表示上のバージョン番号が古いままでも修正済み。8.1以前は公式サポートが終了しているため、cPanelの「Select PHP Version」でサポート対象のPHPへの切替を検討。"
+        customer_action_en: "No action is needed for this fix. PHP 5.2-8.1 are patched even though the version number does not change. PHP 8.1 and older are out of upstream support, so plan a move to a supported PHP in cPanel (Select PHP Version)."
+        source: https://www.namecheap.com/status-updates/ongoing-php-security-vulnerability-affecting-hosting-services-october-21-2026/
+        verified_at: "2026-10-26"
+
+  - id: dreamhost
+    name: "DreamHost"
+    name_ja: "DreamHost"
+    kind: hosting
+    asns: [26347]
+    #   26347: dig +short TXT AS26347.asn.cymru.com -> "26347 | US | arin | 2002-08-28 | DREAMHOST-AS - New Dream Network, LLC, US"; toynbeeidea.com (NS ns1-3.dreamhost.com) -> 173.236.193.191, Team Cymru origin "26347 | 173.236.128.0/17 | US | arin", dig -x -> apache2-jolly.iad1-shared-e1-05.dreamhost.com (2026-10-26)
+    as_name_contains: ["DREAMHOST"]
+    #   DREAMHOST: Cymru AS name for 26347: DREAMHOST-AS
+    ns_suffixes: ["dreamhost.com"]
+    #   dreamhost.com: https://help.dreamhost.com/hc/en-us/articles/216385447 ("ns1.dreamhost.com", "ns2.dreamhost.com", "ns3.dreamhost.com")
+    notes: "Covers shared hosting, DreamPress, managed VPS and dedicated servers, which DreamHost patches. DreamCompute (IaaS, where the customer runs PHP) is in the same network (AS26347) and shows as DreamHost too; DreamHost's notice does not cover it. Temporary sites use example.dreamhosters.com on the same servers."
+    notes_ja: "共有ホスティング・DreamPress・マネージドVPS・専用サーバーを含み、いずれもDreamHostがPHPを更新する。利用者がPHPを管理するIaaSのDreamComputeも同じネットワーク（AS26347）にあり、DreamHostと表示されるが、DreamHostの告知の対象には含まれていない。仮サイトは同じサーバー上の example.dreamhosters.com。"
+    news: https://www.dreamhoststatus.com/pages/575f0f606826303142000510/rss
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-23"
+        summary: "公式ステータス（10月21日〜23日）：10月21日朝に共有・VPS・DreamPress・専用サーバーの全プラットフォームで防御策を実施し、10月22日に公式のPHP修正をネットワーク全体へ適用。10月23日（太平洋時間11:26）に「共有・専用・VPS・DreamPressを含むすべてのDreamHostサーバーにPHPの修正を導入した」として解決。PHP 8.1以前も自社の PHP Extended Support プログラムの修正で対応済み。告知にCVE番号や修正版のバージョン番号の記載はない。"
+        summary_en: "Official status page (Oct 21-23): protections on all platforms (shared, VPS, DreamPress, dedicated) on the morning of Oct 21, official PHP fixes applied across the whole network on Oct 22, and resolved on Oct 23 (11:26 PDT): \"PHP's security fix is now installed across all DreamHost servers, including Shared, Dedicated, VPS, and DreamPress.\" PHP 8.1 and older are covered by fixes from DreamHost's PHP Extended Support program. The notice gives no CVE numbers or fixed version numbers."
+        customer_action: "DreamCompute（利用者が管理するサーバー）でPHPを動かしている場合は、DreamHostの対応の対象外のため自分で更新する。それ以外は今回の対策のために必要な作業はないとされる。PHP 8.1以前は公式サポートが終了しているため、パネルでサポート対象のPHPへの切替を検討。"
+        customer_action_en: "If the site runs on DreamCompute (a server you manage), DreamHost's fix does not cover it: update PHP yourself. Otherwise DreamHost says no action is needed for this fix. PHP 8.1 and older are out of upstream support, so plan a move to a supported PHP in the panel."
+        source: https://www.dreamhoststatus.com/pages/incident/575f0f606826303142000510/6ad8c218a7031204d4ca2981
+        verified_at: "2026-10-26"
+
+  - id: wpengine
+    name: "WP Engine"
+    name_ja: "WP Engine"
+    kind: hosting
+    cname_suffixes: ["wpengine.com", "wpenginepowered.com", "wpeproxy.com", "wpewaf.com"]
+    #   wpengine.com: https://wpengine.com/support/network/ (Legacy network: custom CNAME such as "mycoolsite.wpengine.com"); dig +short A zzqqnonexist123.wpengine.com -> 130.211.29.77 (Google Cloud, 2026-10-26)
+    #   wpenginepowered.com: same page (Advanced Network: CNAME flattening to "wp.wpenginepowered.com"); dig +short CNAME webmanage.tcu.edu and www.chhs.colostate.edu -> wp.wpenginepowered.com, both answering x-powered-by: WP Engine (2026-10-26)
+    #   wpeproxy.com: same page (Global Edge Security: custom CNAME such as "somestring123.wpeproxy.com")
+    #   wpewaf.com: https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/saas-customers/provider-guides/wpengine ("wp.wpewaf.com" for Global Edge Security)
+    http_headers: ["x-cache-group"]
+    #   x-cache-group: curl -sI https://webmanage.tcu.edu/, https://www.chhs.colostate.edu/, https://www.campaignmonitor.com/ (A 141.193.213.20, no CNAME), https://torquemag.io/ and https://www.studiopress.com/ all return it with x-powered-by: WP Engine behind server: cloudflare; not sent by Kinsta, Pantheon, Pressable or Flywheel sites checked (2026-10-26; torquemag.io and wpengine.com/support/network/ re-checked the same day). x-cacheable is also sent by Flywheel (www.wpkube.com), so it is not listed.
+    notes: "Managed WordPress. Sites run on Google Cloud and AWS behind Cloudflare (Advanced Network, 141.193.213.10/.11 from Cloudflare's AS209242), so the ASN shows Cloudflare or the cloud, not WP Engine; sites are recognised by their CNAME to wpengine.com / wpenginepowered.com / wpeproxy.com / wpewaf.com, or by WP Engine's x-cache-group response header. WP Engine's headless platform and Flywheel are not covered by this entry."
+    notes_ja: "マネージドWordPress。サイトはCloudflare経由（Advanced Network の 141.193.213.10／.11 はCloudflareのAS209242）でGoogle Cloud・AWS上に置かれるため、ASではCloudflareやクラウドと表示される。wpengine.com／wpenginepowered.com／wpeproxy.com／wpewaf.com へのCNAMEか、WP Engineの応答ヘッダ x-cache-group で判別する。WP Engineのヘッドレス基盤とFlywheelはこのエントリの対象外。"
+    news: https://wpengine.com/feed/
+    #   Checked 2026-10-26: WP Engine's blog feed lists the cited post ("Two critical CVEs affecting PHP"). The status page (wpenginestatus.com) is a JavaScript app with no feed.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式ブログ（10月22日）：「すべての顧客サイトは完全に修正済みのPHPで動いている。利用者の作業は不要」。公式ステータス「PHP Security Update」（10月21日13:40〜10月22日1:19 UTC）：10月21日にCloudflareとFastlyのCDN層とホスティング層で緩和策を実施し、プラットフォームで動く全バージョン（7.4、8.2、8.4、8.5）を更新するとしたうえで、10月22日1:19 UTCに「2件の重大なPHPの脆弱性に対するパッチの展開を完了した。利用者の作業は不要」と告知。更新後のバージョンは 7.4.33.17、8.2.35、8.4.27、8.5.12。"
+        summary_en: "Official status incident \"PHP Security Update\" (Oct 21 13:40 to Oct 22 01:19 UTC): mitigations at the CDN layer (Cloudflare and Fastly) and the hosting layer on Oct 21, with every PHP version on the platform (7.4, 8.2, 8.4, 8.5) to be updated; at 01:19 UTC on Oct 22: \"WP Engine has finished the deployment of security patches for two critical PHP vulnerabilities on our platform ... no action is needed from you.\" Updated versions: 7.4.33.17, 8.2.35, 8.4.27, 8.5.12. A blog post the same day: \"All customer sites are running fully patched versions of PHP.\""
+        customer_action: "今回の対策のために必要な作業はない。PHP 7.4は公式サポートが終了しているため、User Portalでサポート対象のPHPへの切替を検討。"
+        customer_action_en: "No action is needed for this fix. PHP 7.4 is out of upstream support, so plan a move to a supported PHP in the User Portal."
+        source: https://wpengine.com/blog/php-vulnerability-update/
+        verified_at: "2026-10-26"
+
+  - id: kinsta
+    name: "Kinsta"
+    name_ja: "Kinsta"
+    kind: hosting
+    cname_suffixes: ["kinsta.cloud"]
+    #   kinsta.cloud: https://kinsta.com/docs/wordpress-hosting/wordpress-domains/wordpress-add-a-domain/ ("this defaults to a kinsta.cloud address"); Cloudflare's Kinsta guide gives the CNAME target "sitename.hosting.kinsta.cloud" (https://developers.cloudflare.com/cloudflare-for-platforms/cloudflare-for-saas/saas-customers/provider-guides/kinsta/); dig +short A <any>.hosting.kinsta.cloud -> 162.159.134.42 / 162.159.135.42 (2026-10-26)
+    http_headers: ["x-kinsta-cache", "ki-origin", "x-edge-location-klb"]
+    #   x-kinsta-cache: curl -sI https://kinsta.com/blog/ and https://generatepress.com/ (DNS and A on Cloudflare only) both return it behind server: cloudflare (2026-10-26)
+    #   ki-origin, x-edge-location-klb: curl -sI https://generatepress.com/ returns both (with ki-edge, ki-cache-type, ki-cf-cache-status); Kinsta staff describe them at https://community.kinsta.com/t/high-server-response-time-and-cache-miss-issue/2914 ("Ki-Origin" = the infrastructure the site was served from; "X-Edge-Location-Klb" = the load balancer used)
+    notes: "Managed WordPress on Google Cloud, fronted by Cloudflare. The ASN shows Cloudflare or Google Cloud, so sites are recognised by a CNAME to kinsta.cloud (sitename.hosting.kinsta.cloud) or by Kinsta's response headers, which also pass through a customer's own Cloudflare zone. Kinsta's DNS service uses Route 53 name servers and cannot be told from AWS. Kinsta's application and static-site hosting are not covered by this entry."
+    notes_ja: "Google Cloud上のマネージドWordPressで、前段にCloudflareがある。ASではCloudflareやGoogle Cloudと表示されるため、kinsta.cloud（sitename.hosting.kinsta.cloud）へのCNAMEか、Kinstaの応答ヘッダで判別する。ヘッダは利用者自身のCloudflareを経由しても残る。KinstaのDNSサービスはRoute 53のネームサーバーを使うためAWSと区別できない。Kinstaのアプリケーション・静的サイトホスティングはこのエントリの対象外。"
+    news: https://status.kinsta.com/history.rss
+    #   Checked 2026-10-26: lists the cited incident.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式ステータス（10月21日〜22日）：10月21日からCloudflareのルールと設定変更で全サイトの攻撃を緩和しつつ、検証の済んだ順にPHP 8.5・8.3・8.0・7.4・8.1・8.2・8.4へ修正を展開し、10月22日8:26 UTCに「全サイトが保護され、PHPのセキュリティ更新をプラットフォーム全体に展開した。侵害の証拠はない」として解決。10月23日のブログでは、PHP 7.4〜8.5（古いバージョンはFreexianの修正）を本番・ステージング環境に適用したとしている。修正版のバージョン番号の記載はない。"
+        summary_en: "Official status page (Oct 21-22): from Oct 21, Cloudflare rules and config changes mitigated attacks on all sites while fixes rolled out as each was validated (8.5, 8.3, 8.0, 7.4, 8.1, 8.2, 8.4); resolved at 08:26 UTC on Oct 22: \"All sites are protected, the PHP security updates have been rolled out across the platform, and we have no evidence of any breaches\". An Oct 23 blog post says PHP 7.4-8.5 were updated on live and staging environments, with fixes for older versions from Freexian. No fixed version numbers are given."
+        customer_action: "PHPバージョンの変更や追加のパッチは不要。念のため停止していた環境があれば再開できる。PHP 8.1以前は公式サポートが終了しているため、MyKinstaでサポート対象のPHPへの切替を検討。"
+        customer_action_en: "No PHP version change or extra patch is needed. Environments suspended as a precaution can be reactivated. PHP 8.1 and older are out of upstream support, so plan a move to a supported PHP in MyKinsta."
+        source: https://status.kinsta.com/incidents/c0c6xl1ghpb2
+        verified_at: "2026-10-26"
+
+  # ---- Site platforms: the vendor runs the whole site. Several sit on cloud or CDN address space, so they are recognised by CNAME or name server.
+
+  - id: vercel
+    name: "Vercel"
+    name_ja: "Vercel"
+    kind: saas
+    ns_suffixes: ["vercel-dns.com"]
+    #   vercel-dns.com: https://vercel.com/docs/domains/working-with-domains/add-a-domain
+    cname_suffixes: ["vercel-dns.com", "vercel-dns-017.com", "vercel-dns-0.com"]
+    #   vercel-dns.com: dig +short cname.vercel-dns.com -> 66.33.60.34, 76.76.21.164; observed www.nextjs.org CNAME 7db0c515ced5a8a7.v…
+    #   vercel-dns-017.com: Same Vercel docs page: "Each project has a unique CNAME record e.g. d1d4fc829fe7bc7c.vercel-dns-017.com"; dig …
+    #   vercel-dns-0.com: Same Vercel docs page wildcard example "cname.vercel-dns-0.com."; dig -> 66.33.60.193, 76.76.21.241
+    http_headers: ["x-vercel-id"]
+    #   x-vercel-id: curl -sI https://nextjs.org/ and https://vercel.com/ return x-vercel-id with server: Vercel (2026-10-24)
+    notes: "Most Vercel sites do not use PHP. Where PHP functions are used, the customer controls the PHP version."
+    notes_ja: "Vercel 上のサイトの多くはPHPを使わない。PHP関数を使う場合、PHPのバージョンは利用者が管理する。"
+    news: https://vercel.com/kb/bulletin
+    #   Checked 2026-10-26: lists both cited bulletins.
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: official
+        summary: "Vercel の公式セキュリティ告知：公表前から既知の攻撃パターンを遮断するWAFルールを全プロジェクトに無償で自動適用し、Vercel 上のPHP関数と、Vercel が中継する外部PHPバックエンドへの通信を対象とした。Vercel が自社のPHPランタイムを更新したとの記載はなく、WAFは修正の代わりにならないとして、利用者にPHPランタイムの即時更新を求めている。告知に日付の記載はない。"
+        summary_en: "Vercel bulletin: WAF rules blocking known exploit patterns were deployed before disclosure and apply automatically, at no cost, to all projects, covering PHP functions on Vercel and requests proxied to external PHP backends. It does not say Vercel patched any PHP runtime. It tells customers to upgrade their PHP runtime immediately, since WAF rules do not replace patching. The bulletin carries no date."
+        customer_action: "Next.js など静的・JavaScriptのみのサイトはPHPの作業不要。Vercel でPHP関数を使っている場合や、Vercel 経由で外部のPHPサーバーを公開している場合は、PHPを 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 以降に更新して再デプロイし、外部サーバーへの直接アクセスを制限する。"
+        customer_action_en: "Static or JavaScript-only sites (e.g. Next.js) need no PHP work. If you use PHP functions on Vercel or proxy to an external PHP backend through Vercel, update PHP to 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later, redeploy, and restrict direct access to the backend."
+        source: https://vercel.com/kb/bulletin/php2shell-security-bulletin
+        verified_at: "2026-10-24"
+      vercel-2026-04:
+        title: "2026年4月のセキュリティ事故（環境変数の漏えい）"
+        title_en: "April 2026 security incident (environment variables exposed)"
+        status: "patched"
+        confidence: official
+        date: "2026-10-16"
+        summary: "公式告知：外部のAIツール経由で従業員のアカウントが乗っ取られ、攻撃者がVercelの内部システムに入り、一部の顧客の「sensitive」指定でない環境変数を列挙・復号した。対象の顧客には通知済み。Vercelは10月16日に対応がすべて完了し、事故を終結したと発表した。"
+        summary_en: "Official bulletin: an employee's account was taken over through a third-party AI tool, and the attacker reached internal Vercel systems and enumerated and decrypted some customers' environment variables not marked sensitive. Affected customers were notified. On Oct 16 Vercel announced remediation complete and the incident closed."
+        customer_action: "Vercelから通知を受けた場合や未対応の場合は、sensitive指定でない環境変数（APIキー、トークン、データベースの認証情報、署名鍵）を入れ替え、秘密の値はsensitiveに指定する。MFAを有効にし、アクティビティログと身に覚えのないデプロイを確認する。"
+        customer_action_en: "If Vercel notified you, or you have not acted yet, rotate environment variables not marked sensitive (API keys, tokens, database credentials, signing keys) and mark secrets as sensitive. Turn on MFA and review activity logs and unexpected deployments."
+        source: https://vercel.com/kb/bulletin/vercel-april-2026-security-incident
+        verified_at: "2026-10-24"
+
+  - id: netlify
+    name: "Netlify"
+    name_ja: "Netlify"
+    kind: saas
+    cname_suffixes: ["netlify.app", "apex-loadbalancer.netlify.com"]
+    #   netlify.app: https://docs.netlify.com/manage/domains/configure-domains/configure-external-dns/
+    #   apex-loadbalancer.netlify.com: Same page: "Point the record to Netlify's load balancer at: apex-loadbalancer.netlify.com."; dig A -> 75.2.60.…
+    notes: "Netlify does not run PHP for its customers."
+    notes_ja: "Netlify は利用者のためにPHPを動かさない。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "Netlify は静的サイトとサーバーレス関数の基盤で、Functions の概要ページにPHPの記載はない。php2shell に関する Netlify の公式告知は見つからなかった。"
+        summary_en: "Netlify hosts static sites and serverless functions; its Functions overview page does not mention PHP. No Netlify notice on php2shell was found."
+        customer_action: "Netlify 上のサイト自体にPHPの作業は不要。別のサーバーでPHP（APIやCMSなど）を動かしている場合は、そのサーバーの管理者に更新を依頼。"
+        customer_action_en: "No PHP work for the site on Netlify itself. If PHP runs elsewhere (an API or CMS backend), ask that server's administrator to update it."
+        verified_at: "2026-10-24"
+
+  - id: colorme
+    name: "Color Me Shop (GMO Pepabo)"
+    name_ja: "カラーミーショップ（GMOペパボ）"
+    kind: saas
+    ns_suffixes: ["shop-pro.jp"]
+    #   shop-pro.jp: dig +short NS shop-pro.jp -> dns1.shop-pro.jp. dns2.shop-pro.jp. dns3.shop-pro.jp. dns4.shop-pro.jp.; dig +sho…
+    notes: "The vendor runs PHP for the shop. Only domains delegated to dns*.shop-pro.jp are recognised; shops using Muumuu DNS are not identifiable from the name servers."
+    notes_ja: "カラーミーショップのPHPは事業者が管理する。ネームサーバーを dns1/dns2.shop-pro.jp に向けたドメインのみ判別できる。ムームーDNSを使う構成ではネームサーバーからは判別できない。"
+    news: https://shop-pro.jp/news/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-22"
+        summary: "公式発表（10月22日 9:00 追記）：IPAの注意喚起を受け、予防措置として10月21日 22:00からショップページと管理画面を停止してメンテナンスを実施し、10月22日 8:49にすべて完了。受注・商品・在庫などの既存データへの影響はなく、当該脆弱性を悪用した攻撃やデータ漏えいは確認されていない。更新後のPHPバージョンは告知に記載がない。"
+        summary_en: "Official notice (addendum 2026-10-22 09:00): as a precaution after the IPA alert, shop pages and the admin panel were taken down from 22:00 on Oct 21; all maintenance finished at 08:49 on Oct 22. No impact on existing orders, products or stock, and no exploitation or data leak confirmed. The notice does not state the resulting PHP version."
+        customer_action: "ショップオーナー側の作業は不要。ショップが外部のレンタルサーバー上の画像やファイルを読み込んでいる場合は、そのサーバーの対応状況も確認する。"
+        customer_action_en: "No action needed by shop owners. If the shop loads files from an external rental server, check that server's status too."
+        source: https://shop-pro.jp/news/20261021-maintenance/
+        verified_at: "2026-10-24"
+
+  - id: base
+    name: "BASE"
+    name_ja: "BASE"
+    kind: saas
+    cname_suffixes: ["thebase.in"]
+    #   thebase.in: https://help.thebase.in/hc/ja/articles/206341002
+    notes: "Shops run on BASE's platform; the shop owner has no PHP to manage. Custom domains are subdomains CNAMEd to cname.thebase.in."
+    notes_ja: "ショップはBASEの基盤で動作し、ショップ側が管理するPHPはない。独自ドメインはサブドメインを cname.thebase.in にCNAMEで向ける方式。"
+    news: https://binc.jp/news
+    #   Checked 2026-10-26: BASE, Inc.'s news list, where it posts security notices.
+    incidents:
+      php2shell:
+        status: "unknown"
+        confidence: secondary
+        summary: "BASEは10月21日から22日にかけてPHPの脆弱性に関連した緊急メンテナンスでサービスを一時停止したと報じられているが、公式の完了告知ページは現在取得できず（404）、事業者の発表内容を確認できていない。"
+        summary_en: "BASE is reported to have suspended service for emergency maintenance related to the PHP vulnerabilities on Oct 21-22, but its official completion notice now returns 404 and the vendor's statement could not be read."
+        customer_action: "ショップ側で更新するPHPはない。最新の状況はBASEのヘルプセンターのお知らせで確認する。"
+        customer_action_en: "Shop owners have no PHP to update. Check BASE's help-center notices for the current status."
+        verified_at: "2026-10-24"
+
+  - id: makeshop
+    name: "makeshop"
+    name_ja: "makeshop"
+    kind: saas
+    ns_suffixes: ["makeshop.jp"]
+    #   makeshop.jp: https://ms-manual.makeshop.jp/basicinfo/
+    cname_suffixes: ["cn.makeshop.jp"]
+    #   cn.makeshop.jp: https://ms-manual.makeshop.jp/basicinfo/
+    notes: "Shops run on the vendor's servers and the vendor manages PHP. Recognised by name servers (ns.makeshop.jp) or CNAME (shopid.cn.makeshop.jp). The bare-domain redirect A records are on AWS (AS16509), so the ASN does not identify makeshop."
+    notes_ja: "ショップは事業者のサーバーで動作し、PHPは事業者が管理する。ネームサーバー方式（ns.makeshop.jp）とCNAME方式（ショップID.cn.makeshop.jp）で判別できる。wwwなしの転送用Aレコードは AWS（AS16509）のため、AS番号では判別できない。"
+    news: https://www.makeshop.jp/main/support/maintenance/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-23"
+        summary: "公式発表（10月23日 15:00 追記）：PHPの重大な脆弱性を受けた緊急メンテナンスを全shopサーバーと全mailサーバーで10月21日 23:00から実施し、10月22日 4:42に完了。管理画面とショップサイトの利用に問題はなく、不正アクセスや顧客情報・注文情報の漏えいは確認されていない。本件に伴い「受信メール確認（roundcube）」と「アクセス統計」は廃止。メール配信プラスも10月23日に復旧。PHPのバージョンは告知に記載がない。"
+        summary_en: "Official notice (addendum Oct 23 15:00): emergency maintenance for the critical PHP vulnerability ran on all shop and mail servers from 23:00 on Oct 21 and finished at 04:42 on Oct 22. Admin panel and shop sites work normally; no unauthorized access or leak of customer or order data confirmed. The roundcube webmail check and access statistics features were withdrawn as a result. Mail delivery plus recovered on Oct 23. No PHP version is stated."
+        customer_action: "ショップ側で特別な対応は不要。roundcube で二段階認証メールを受け取っていた場合は、管理者メールアドレスを別のアドレスに変更する。"
+        customer_action_en: "No special action needed by shops. If you received two-step authentication mail through roundcube, change the admin email address to another mailbox."
+        source: https://www.makeshop.jp/main/support/maintenance/info_detail.html/20261021182632.html
+        verified_at: "2026-10-24"
+
+  - id: shopify
+    name: "Shopify"
+    name_ja: "Shopify"
+    kind: saas
+    cname_suffixes: ["myshopify.com"]
+    #   myshopify.com: https://help.shopify.com/en/manual/domains/add-a-domain/connecting-domains/connect-domain-manual
+    notes: "This vendor does not run PHP for you. Recognised by the www CNAME to shops.myshopify.com. The apex A record 23.227.38.65 is announced by Cloudflare (AS13335), so an ASN-only match will say Cloudflare."
+    notes_ja: "PHPを利用者に提供しないサービス。wwwのCNAME（shops.myshopify.com）で判別できる。ルートドメインのAレコード 23.227.38.65 は Cloudflare（AS13335）から広報されているため、AS番号だけではCloudflareと判定される。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "ShopifyはストアをShopifyの基盤で動かしており、ストア運営者が管理・更新するPHPはない。"
+        summary_en: "Shopify runs stores on its own platform; the merchant has no PHP to manage or update."
+        customer_action: "Shopify側の対応は不要。独自に外部サーバーでPHPのアプリやサイトを動かしている場合は、そのサーバーを確認する。"
+        customer_action_en: "Nothing to do on Shopify. If you run your own PHP app or site on another server, check that server."
+        verified_at: "2026-10-24"
+
+  - id: wix
+    name: "Wix"
+    name_ja: "Wix"
+    kind: saas
+    asns: [58182]
+    #   58182: https://support.wix.com/en/article/connecting-a-domain-to-wix-using-the-pointing-method
+    ns_suffixes: ["wixdns.net"]
+    #   wixdns.net: https://support.wix.com/en/article/connecting-your-godaddy-domain-to-the-wix-name-servers
+    cname_suffixes: ["wixdns.net"]
+    #   wixdns.net: https://support.wix.com/en/article/connecting-a-domain-to-wix-using-the-pointing-method
+    notes: "This vendor does not run PHP for you. Recognised by the A record (AS58182), CNAME pointing.wixdns.net, or ns*.wixdns.net name servers."
+    notes_ja: "PHPを利用者に提供しないサービス。Aレコード（AS58182）、CNAME（pointing.wixdns.net）、ネームサーバー（ns*.wixdns.net）で判別できる。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "WixはサイトをWixの基盤で動かしており、サイト運営者が管理・更新するPHPはない。"
+        summary_en: "Wix runs sites on its own platform; the site owner has no PHP to manage or update."
+        customer_action: "Wix側の対応は不要。別のサーバーでPHPを動かしている場合は、そのサーバーを確認する。"
+        customer_action_en: "Nothing to do on Wix. If you run PHP on another server, check that server."
+        verified_at: "2026-10-24"
+
+  - id: jimdo
+    name: "Jimdo"
+    name_ja: "ジンドゥー"
+    kind: saas
+    ns_suffixes: ["jimdo.com"]
+    #   jimdo.com: https://portal-jp.jimdo.com/domain-connection/
+    cname_suffixes: ["jimdo.com", "jimdofree.com", "jimdoweb.com"]
+    #   jimdo.com: https://www.jimdo.com/jp/2025/02/07/
+    #   jimdofree.com: https://www.jimdo.com/jp/2025/02/07/
+    #   jimdoweb.com: https://www.jimdo.com/jp/2025/02/07/
+    notes: "This vendor does not run PHP for you. Recognised by CNAME to web.jimdo.com (older: *.jimdofree.com, *.jimdoweb.com) or ns*.jimdo.com name servers."
+    notes_ja: "PHPを利用者に提供しないサービス。CNAME（web.jimdo.com、旧 ◯◯.jimdofree.com／◯◯.jimdoweb.com）またはネームサーバー（ns*.jimdo.com）で判別できる。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "ジンドゥーはサイトを事業者の基盤で動かしており、サイト運営者が管理・更新するPHPはない。"
+        summary_en: "Jimdo runs sites on its own platform; the site owner has no PHP to manage or update."
+        customer_action: "ジンドゥー側の対応は不要。別のサーバーでPHPを動かしている場合は、そのサーバーを確認する。"
+        customer_action_en: "Nothing to do on Jimdo. If you run PHP on another server, check that server."
+        verified_at: "2026-10-24"
+
+  # ---- Application platforms (PaaS): the customer's own container runs on the vendor's platform, so the customer runs PHP like on IaaS. Listed before the clouds whose addresses they use; recognised by CNAME, network or the response headers their edge adds.
+
+  - id: railway
+    name: "Railway"
+    name_ja: "Railway"
+    kind: paas
+    asns: [400940]
+    #   400940: dig +short A docs.railway.com -> 69.46.46.46 (CNAME 0fh30wh0.up.railway.app); Cymru 2026-10-24 -> "400940 | 69.46.46.0/24 | US | arin"; AS name "RAILWAY - Railway, US". No as_name_contains: "RAILWAY" would also match rail operators' networks.
+    cname_suffixes: ["railway.app"]
+    #   railway.app: https://docs.railway.com/networking/domains/working-with-domains ("a CNAME record (e.g., g05ns7.up.railway.app)"; "Auto-generated *.up.railway.app domains")
+    http_headers: ["x-railway-request-id", "x-railway-edge"]
+    #   x-railway-request-id, x-railway-edge: curl -sI https://blog.railway.com/ and https://<unused>.up.railway.app/ (404) both return them, with server: railway-hikari (2026-10-24). They pass through a proxying CDN, so they name Railway behind Cloudflare too.
+    notes: "Railway runs the customer's containers; the customer chooses and updates PHP. Sites proxied through Cloudflare show Cloudflare in DNS and are recognised by Railway's response headers."
+    notes_ja: "Railwayは利用者のコンテナを動かす基盤で、PHPのバージョンは利用者が選んで更新する。Cloudflare経由で公開しているサイトはDNS上はCloudflareに見えるが、Railwayの応答ヘッダで判別できる。"
+    news: https://blog.railway.com/rss.xml
+    #   Checked 2026-10-26: the blog's feed; lists the cited report.
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "PaaS。PHPは利用者のコンテナで動き、利用者が更新する。Railwayのブログ（2026年10月24日時点）にphp2shellの告知はない。"
+        summary_en: "PaaS. PHP runs in the customer's container and the customer updates it. Railway's blog had no php2shell notice as of 2026-10-24."
+        customer_action: "PHPを使うサービスは、イメージやビルド設定のPHPを修正版（8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 以降）に更新して再デプロイする。"
+        customer_action_en: "For services that use PHP, update PHP in the image or build settings to a fixed release (8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later) and redeploy."
+        verified_at: "2026-10-24"
+      railway-2026-10:
+        title: "2026年10月のセキュリティ事故（環境変数の漏えい）"
+        title_en: "October 2026 security incident (environment variables exposed)"
+        status: "in_progress"
+        confidence: official
+        date: "2026-10-26"
+        summary: "公式の暫定報告（10月22日公開、26日まで追記）：10月20日13:58〜22日03:32（UTC）、攻撃者がRailwayの内部システムに侵入し、暗号化された環境変数を取得、その一部を復号した。環境変数が漏えいした可能性があるのは最大で全ワークスペースの1.85%（約10万件）だが、どの変数が復号されたかは特定できていない。攻撃者はAIサービスのAPIキーを狙っていた。稼働中のサービスは止まっておらず、ビルドとデプロイは10月23日までに全プランで再開。高リスクと判断した利用者への通知は10月23日18:57（UTC）に完了したが、通知が届いていないワークスペースも安全とは確認されていない。10月26日には「既存の利用者について事故は解決した」とし、新規登録は停止したまま今週中に再開予定。漏えいしたAPIキーで他社サービスに使われた料金はRailwayでは返金できないとしている。"
+        summary_en: "Official preliminary report (Oct 22, updated through Oct 26): from Oct 20 13:58 to Oct 22 03:32 UTC an attacker was inside Railway's internal systems, pulled encrypted environment variables and decrypted some of them. At most 1.85% of workspaces (about 100,000) may have had variables exposed, but which variables were decrypted cannot be determined. The attacker was after AI provider API keys. Running services stayed up; builds and deploys were back on every plan by Oct 23. Notices to workspaces judged high-risk were completed at 18:57 UTC on Oct 23; workspaces without a notice are not confirmed safe. On Oct 26 Railway said the incident is resolved for existing users; new signups stay paused and are to reopen this week. It says it cannot refund spend run up on other platforms with the stolen API keys."
+        customer_action: "10月21日より前に登録したRailway利用者は、環境変数に保存したAPIキー・データベースのパスワード・レジストリ認証情報などを、提供元で失効させてから新しい値に入れ替えて再デプロイする（Railway上で値を変えるだけでは古い鍵は有効なまま）。データベースの公開ネットワークアクセスを外し、GitHubやAI・クラウドサービスの利用履歴に不審な操作がないか確認する。漏えいしたキーでAIサービスの料金が発生した場合は、まずそのAIサービスに連絡し、証拠を添えてRailwayのサポートにも申し出る。制作会社が運用している場合は、Railwayを使っているかと対応状況を確認する。"
+        customer_action_en: "Railway customers who signed up before Oct 21: revoke the API keys, database passwords, registry credentials and other secrets stored in environment variables at their source, then set new values and redeploy (changing the value on Railway alone leaves the old key valid). Remove public network access to databases and check GitHub, AI and cloud provider activity for anything unusual. If stolen keys ran up AI charges, contact that AI provider first, then file a Railway support request with the evidence. If an agency runs the site, ask whether it uses Railway and what it has done."
+        source: https://blog.railway.com/p/preliminary-report-october-security-incident
+        verified_at: "2026-10-28"
+
+  - id: zeabur
+    name: "Zeabur"
+    name_ja: "Zeabur"
+    kind: paas
+    cname_suffixes: ["zeabur.app", "clusters.zeabur.com"]
+    #   zeabur.app: https://zeabur.com/docs/en-US/deploy/domain-binding ("a domain name with the zeabur.app suffix, such as your-service.zeabur.app")
+    #   clusters.zeabur.com: same page ("Zeabur will give you a CNAME pointing to a hostname like hkg1.clusters.zeabur.com"); dig +short A hnd1.clusters.zeabur.com -> 13.231.87.65 (AWS)
+    http_headers: ["x-zeabur-request-id"]
+    #   x-zeabur-request-id: curl -sI https://zeabur.com/ and https://<unused>.zeabur.app/ (404) both return it (2026-10-24)
+    notes: "Zeabur runs on AWS and GCP addresses, so it is recognised by CNAME or by its response header, not by network. Sites whose apex A record points straight at a cluster address show as AWS. Zeabur is closing: all shared clusters and dedicated servers end by 2026-12-31."
+    notes_ja: "ZeaburはAWSやGCPのアドレスで動くため、ネットワークではなくCNAMEか応答ヘッダで判別する。ルートドメインのAレコードでクラスターのアドレスを直接指している場合はAWSと表示される。Zeaburはサービスを終了し、2026年12月31日までに共有クラスターと専用サーバーをすべて停止する。"
+    news: https://zeabur.com/ja-JP/blogs
+    #   Checked 2026-10-26: lists the cited report.
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "PaaS。PHPは利用者のサービスで動き、利用者が更新する。php2shellについての告知は見当たらない（2026年10月24日時点）。"
+        summary_en: "PaaS. PHP runs in the customer's service and the customer updates it. No php2shell notice found (as of 2026-10-24)."
+        customer_action: "PHPを使うサービスは修正版のPHPに更新して再デプロイする。サービス終了に向けた移行先でも同様に確認する。"
+        customer_action_en: "For services that use PHP, update to a fixed PHP release and redeploy; check the same on whatever you migrate to."
+        verified_at: "2026-10-24"
+      zeabur-2026-10:
+        title: "2026年10月のセキュリティ事故（環境変数の漏えい）とサービス終了"
+        title_en: "October 2026 security incident (environment variables exposed) and shutdown"
+        status: "in_progress"
+        confidence: official
+        date: "2026-10-19"
+        summary: "公式の暫定報告（10月19日、日本語版あり）：10月14〜15日（UTC）、漏えいしていた内部の認証情報を使って攻撃者が共有クラスター・GCP専用サーバー・内部システムに侵入し、共有クラスターのサービス設定と環境変数、Zeaburのデータベースに保存された環境変数を読み取った。8月にも別の事故があり、そのときの鍵の入れ替えは今回使われた認証情報を含んでいなかった。原因はZeabur側にある（長期間有効な管理者認証情報の平文保存）。Zeaburは10月17日にサービス終了を発表し、12月1日から共有クラスターのサービスを一時停止、12月31日までにすべての共有クラスターと専用サーバーを終了する。調査は継続中。"
+        summary_en: "Official preliminary report (Oct 19, also in Japanese): on Oct 14-15 UTC an attacker used leaked internal credentials to enter the shared cluster, GCP dedicated servers and internal systems, and read service settings and environment variables on the shared cluster as well as the environment variables stored in Zeabur's database. A separate incident happened in August, and the credential rotation then did not cover the ones used this time. Zeabur says the root cause is its own (long-lived admin credentials stored in plaintext). On Oct 17 Zeabur announced it is shutting down: shared-cluster services are paused from Dec 1, and all shared clusters and dedicated servers end by Dec 31. The investigation continues."
+        customer_action: "Zeaburに保存したすべてのパスワードと鍵（APIキー、クラウドの鍵、データベースのパスワード、署名・暗号鍵）を、8月に入れ替えたものも含めて提供元で失効させ、新しい値に替えて再デプロイする。共有クラスターのデータベースは中のパスワードも変更する。アクセストークンを作り直し、GitHubの監査ログと10月14日以降（GCP専用サーバーは9月1日以降）の請求を確認する。12月1日までにバックアップと移行を済ませる。"
+        customer_action_en: "Revoke every password and key stored on Zeabur (API keys, cloud keys, database passwords, signing and encryption keys), including ones already replaced in August, then set new values and redeploy. On the shared cluster, also change the passwords inside your databases. Recreate access tokens, check the GitHub audit log and bills from Oct 14 (Sept 1 for GCP dedicated servers). Back up and migrate before Dec 1."
+        source: https://zeabur.com/ja-JP/blogs/october-2026-security-incident
+        verified_at: "2026-10-24"
+
+  # ---- Cloud (IaaS): the customer or their agency runs PHP. linode precedes akamai because its AS name also contains AKAMAI.
+
+  - id: idcf
+    name: "IDC Frontier"
+    name_ja: "IDCフロンティア"
+    kind: cloud
+    asns: [4694]
+    #   4694: dig +short TXT AS4694.asn.cymru.com -> "4694 | JP | apnic | 1995-08-30 | IDCF - IDC Frontier Inc., JP"; custom…
+    as_name_contains: ["IDCF", "IDC FRONTIER"]
+    #   IDCF: dig +short TXT AS4694.asn.cymru.com -> "... | IDCF - IDC Frontier Inc., JP"
+    #   IDC FRONTIER: dig +short TXT AS4694.asn.cymru.com -> "... | IDCF - IDC Frontier Inc., JP" (matched upper-case)
+    ns_suffixes: ["idcfcloud.com"]
+    #   idcfcloud.com: https://guide.idcf.jp/dns/getting_started_guide/dns_switch_name_server/
+    notes: "IDCF Cloud DNS uses ns01-ns03.idcfcloud.com. Zenlogic hosting also runs on AS4694."
+    notes_ja: "IDCFクラウドのDNSは ns01〜ns03.idcfcloud.com。Zenlogic ホスティングも同じ AS4694 上で動いている。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "IaaS。PHPは利用者（または制作会社）が管理。"
+        summary_en: "IaaS; the customer or their agency runs PHP."
+        customer_action: "サーバー管理者にOSパッケージまたはPHPの更新を依頼。"
+        customer_action_en: "Ask whoever administers the server to update PHP or the OS packages."
+        verified_at: "2026-10-24"
+
+  - id: zenlogic
+    name: "Zenlogic (IDC Frontier)"
+    name_ja: "Zenlogic（IDCフロンティア）"
+    kind: hosting
+    asns: [4694]
+    #   4694: IDCF network (zenlogic.jp SPF hosts originate from AS4694, Cymru 2026-10-24); shared with idcf
+    cname_suffixes: ["znlc.jp"]
+    #   znlc.jp: https://www.idcf.jp/rentalserver/user-support/online/transfer-server/domain.html
+    notes: "IDC Frontier's shared hosting; the vendor runs PHP. It runs on IDCF Cloud (AS4694)."
+    notes_ja: "IDCフロンティアの共用レンタルサーバー。PHPは事業者が運用する。IDCFクラウド（AS4694）上で動いている。"
+    news: https://www.idcf.jp/rentalserver/maintenance/
+    #   Checked 2026-10-26: lists the cited notice.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-23"
+        summary: "公式発表（2026年10月21日掲載、23日最終更新）によると、10月21日22時から緊急メンテナンスでWebサーバーを止めてPHPを更新した。PHP 7.4・8.1・8.2・8.3・8.4・8.5 のサーバーは作業を終え、10月22日8時にWebを再開した。公式修正版のない7.4と8.1には修正パッチを当てたため、バージョン番号を見ても修正済みかどうかは分からない。他のバージョンはマイナーバージョンアップ。PHP 5.3 は最新版へ強制的にバージョンアップし（5.3には戻せない）、完了予定を10月22日19時に変更したが、完了の報告は本文にない。"
+        summary_en: "Official notice (posted 2026-10-21, last updated 2026-10-23): emergency maintenance from 22:00 on Oct 21 stopped the web servers to update PHP. Servers on PHP 7.4, 8.1, 8.2, 8.3, 8.4 and 8.5 were finished and back online at 08:00 on Oct 22. 7.4 and 8.1 have no official fixed release, so Zenlogic applied fix patches to them; their version string does not show whether the fix is in. Other versions got a minor version upgrade. PHP 5.3 was force-upgraded to the latest version, with no way back. Its target finish was moved to 19:00 on Oct 22, and the page body does not confirm that it finished."
+        customer_action: "PHP 5.3 で動いていたサイトは、フォームやCMSの表示・動作を確認し、必要ならプログラムを直す。7.4・8.1 は修正パッチ済みでもバージョン番号では判別できないため、サポート中の8.3以降への移行を検討する。"
+        customer_action_en: "Sites that ran on PHP 5.3 should check that forms and the CMS still work, and fix the code where needed. On 7.4 or 8.1 the fix cannot be confirmed from the version number, so plan a move to 8.3 or later."
+        source: https://www.idcf.jp/rentalserver/maintenance/2026/20261021-2.html
+        verified_at: "2026-10-24"
+
+  - id: nifcloud
+    name: "NIFCLOUD / FJcloud-V (Fujitsu)"
+    name_ja: "ニフクラ／FJcloud-V（富士通）"
+    kind: cloud
+    asns: [55374, 55386]
+    #   55374: dig +short TXT AS55374.asn.cymru.com -> "55374 | JP | apnic | 2010-01-18 | FJcloud-East - FUJITSU LIMITED, JP"…
+    #   55386: dig +short TXT AS55386.asn.cymru.com -> "55386 | JP | apnic | 2010-01-18 | FJcloud-West - FUJITSU LIMITED, JP"…
+    as_name_contains: ["FJcloud"]
+    #   FJcloud: Cymru AS names "FJcloud-East - FUJITSU LIMITED, JP" and "FJcloud-West - FUJITSU LIMITED, JP"
+    ns_suffixes: ["dns.nifcloud.com"]
+    #   dns.nifcloud.com: https://pfs.nifcloud.com/guide/dns/namesever_change.htm
+    notes: "Fujitsu IaaS; the customer runs PHP. The old name servers cdns0/cdns1.nifty.ad.jp were retired in March 2019."
+    notes_ja: "富士通のIaaS。PHPは利用者が管理する。旧ネームサーバー cdns0/cdns1.nifty.ad.jp は2019年3月で利用終了。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: official
+        date: "2026-10-23"
+        summary: "富士通の公式お知らせ（2026年10月23日）によると、本脆弱性への対処として一部のサービス・機能で予防的な緊急メンテナンスを実施し、引き続き状況を注視するとしている。対象のサービス名や、利用者が運用するサーバーへの指示は書かれていない。IaaSのため、サーバー上のPHPは利用者（または制作会社）が管理する。"
+        summary_en: "Fujitsu notice (2026-10-23): preventive emergency maintenance was run on some services and functions to address the vulnerability, and Fujitsu is monitoring the situation. It names no products and gives no instructions for customer-run servers. As this is IaaS, the customer or their agency runs PHP on their servers."
+        customer_action: "サーバー管理者（自社または制作会社）にPHPまたはOSパッケージの更新を依頼する。"
+        customer_action_en: "Ask your administrator or agency to update PHP or the OS packages."
+        source: https://doc.cloud.global.fujitsu.com/jp/information/info20261023-51211.html
+        verified_at: "2026-10-24"
+
+  - id: aws
+    name: "Amazon Web Services"
+    name_ja: "AWS"
+    kind: cloud
+    asns: [16509, 14618]
+    #   16509: dig +short TXT AS16509.asn.cymru.com -> "16509 | US | arin | 2000-05-04 | AMAZON-02 - Amazon.com, Inc., US"; R…
+    #   14618: dig +short TXT AS14618.asn.cymru.com -> "14618 | US | arin | 2005-11-04 | AMAZON-AES - Amazon.com, Inc., US"; …
+    as_name_contains: ["AMAZON-"]
+    #   AMAZON-: Cymru AS names for 16509 and 14618: AMAZON-02 and AMAZON-AES (Amazon.com, Inc.); the hyphen keeps out names that merely start with AMAZON
+    ns_contains: ["awsdns"]
+    #   awsdns: https://docs.aws.amazon.com/Route53/latest/DeveloperGuide/SOA-NSrecords.html
+    cname_suffixes: ["cloudfront.net", "amazonaws.com"]
+    #   cloudfront.net: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/CNAMEs.html
+    #   amazonaws.com: dig +short A ec2.us-east-1.amazonaws.com -> 98.88.14.246 (origin AS14618/16509); AWS service endpoints live un…
+    mx_suffixes: ["amazonaws.com"]
+    #   amazonaws.com: https://docs.aws.amazon.com/ses/latest/dg/receiving-email-mx-record.html
+    notes: "IaaS. On EC2 and Lightsail the customer runs PHP; WorkMail and Elastic Beanstalk platforms are updated by AWS."
+    notes_ja: "IaaS。EC2・Lightsail ではPHPは利用者が管理する。WorkMail と Elastic Beanstalk のプラットフォームはAWSが更新。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: official
+        date: "2026-10-22"
+        summary: "AWSセキュリティ速報 2026-143-AWS（10月21日公開、10月22日更新）によると、AWSのサービス自体は影響を受けない。Amazon WorkMail は PHP 8.3.36 への更新を完了し利用者の作業は不要。Elastic Beanstalk は PHP 8.2〜8.5 の修正済みプラットフォームを公開済みで、マネージド更新を有効にしていれば次のメンテナンス時間に自動適用。Amazon Linux は更新済みPHPパッケージを提供（パッケージのバージョン番号は記載なし）。Lightsail は更新済みブループリントを公開したが、稼働中のインスタンスはその場で更新できない。Lambda にはマネージドPHPランタイムがなく、カスタムランタイムやコンテナで使う場合は利用者が更新する。PHP 5.4〜8.1 には修正版がない。"
+        summary_en: "AWS bulletin 2026-143-AWS (published Oct 21, updated Oct 22): AWS services themselves are not impacted. Amazon WorkMail has been upgraded to PHP 8.3.36 with no customer action. Elastic Beanstalk has patched platform versions for PHP 8.2-8.5, applied automatically when Managed Platform Updates is on. Amazon Linux has updated PHP packages (no version numbers given). Lightsail has updated blueprints, but running instances cannot be updated in place. Lambda has no managed PHP runtime; custom runtimes and container images are the customer's job. PHP 5.4-8.1 have no fix."
+        customer_action: "EC2・Lightsail・Lambda などでPHPを動かしている場合は、サーバー管理者（自社または制作会社）に 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 以降への更新を依頼。Lightsail は更新済みブループリントから新しいインスタンスを作って移行が必要。Elastic Beanstalk でマネージド更新を使っていない場合はプラットフォームバージョンを更新。8.1 以前は修正版がないため、サポート中のブランチへ移行。"
+        customer_action_en: "If PHP runs on EC2, Lightsail or Lambda, ask your administrator or agency to update to 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later. Lightsail needs a new instance from the updated blueprint and a migration. Elastic Beanstalk without Managed Platform Updates must update the platform version. PHP 8.1 and older have no fix; move to a supported branch."
+        source: https://aws.amazon.com/security/security-bulletins/2026-143-aws/
+        verified_at: "2026-10-24"
+
+  - id: google-cloud
+    name: "Google Cloud"
+    name_ja: "Google Cloud"
+    kind: cloud
+    asns: [15169, 396982]
+    #   15169: dig +short TXT AS15169.asn.cymru.com -> "15169 | US | arin | 2000-03-30 | GOOGLE - Google LLC, US"; Cloud DNS …
+    #   396982: dig +short TXT AS396982.asn.cymru.com -> "GOOGLE-CLOUD-PLATFORM - Google LLC, US"; Google's _cloud-netblocks1.…
+    as_name_contains: ["GOOGLE-CLOUD"]
+    #   GOOGLE-CLOUD: Cymru AS name GOOGLE-CLOUD-PLATFORM (396982); plain GOOGLE would also match other Google networks such as GOOGLE-FIBER
+    ns_suffixes: ["googledomains.com"]
+    #   googledomains.com: https://docs.cloud.google.com/dns/docs/update-name-servers
+    notes: "IaaS/PaaS. On Compute Engine and similar, the customer runs PHP."
+    notes_ja: "IaaS／PaaS。Compute Engine などではPHPは利用者が管理する。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: official
+        date: "2026-10-21"
+        summary: "Google Cloud セキュリティ速報 GCP-2026-070（2026年10月21日公開）によると、Google Cloud 自体は脆弱ではないが、Google Cloud 上で PHP 5.4〜8.5 を動かしているワークロードは影響を受けうる。修正版は 8.5.12・8.4.27・8.3.36・8.2.35。App Engine スタンダード、Cloud Run、自動更新を有効にした Cloud Run functions では自動的に最新PHPへ更新される場合がある。それ以外は利用者が更新済みの依存関係で再デプロイする。10月24日の GCP-2026-072 では、Apigee への影響は利用者が自ら運用する Drupal ベースの Apigee デベロッパーポータルに限られ、他の Apigee 製品は PHP を使っておらず影響を受けないとしている。"
+        summary_en: "Google Cloud bulletin GCP-2026-070 (published 2026-10-21): Google Cloud itself is not vulnerable, but customer workloads running PHP 5.4-8.5 may be. Fixed in 8.5.12, 8.4.27, 8.3.36 and 8.2.35. Workloads on App Engine standard, Cloud Run, and Cloud Run functions with automatic updates may be patched automatically; others must be redeployed with updated dependencies. Bulletin GCP-2026-072 (Oct 24) adds that on Apigee only the Drupal-based developer portals, which customers deploy and operate, are affected; other Apigee products do not use PHP."
+        customer_action: "Compute Engine などでPHPを動かしている場合は、サーバー管理者にPHPを修正版へ更新して再デプロイするよう依頼。App Engine スタンダードや Cloud Run でも、実際に修正版で動いているか確認。Drupal ベースの Apigee デベロッパーポータルを運用している場合は、そのPHPも更新する。"
+        customer_action_en: "If PHP runs on Compute Engine or similar, ask your administrator to update PHP to a fixed release and redeploy. On App Engine standard or Cloud Run, confirm the running version is a fixed one. If you run a Drupal-based Apigee developer portal, update its PHP too."
+        source: https://docs.cloud.google.com/support/bulletins
+        verified_at: "2026-10-26"
+
+  - id: azure
+    name: "Microsoft Azure"
+    name_ja: "Microsoft Azure"
+    kind: cloud
+    asns: [8075]
+    #   8075: dig +short TXT AS8075.asn.cymru.com -> "MICROSOFT-CORP-MSN-AS-BLOCK - Microsoft Corporation, US"; Azure DNS NS…
+    as_name_contains: ["MICROSOFT"]
+    #   MICROSOFT: Cymru AS name for 8075: MICROSOFT-CORP-MSN-AS-BLOCK
+    ns_suffixes: ["azure-dns.com", "azure-dns.net", "azure-dns.org", "azure-dns.info"]
+    #   azure-dns.com: https://learn.microsoft.com/en-us/azure/dns/dns-delegate-domain-azure-dns
+    #   azure-dns.net: Same Learn page: "ns2-37.azure-dns.net"; dig A ns2-01.azure-dns.net -> 150.171.21.1
+    #   azure-dns.org: Same Learn page: "ns3-37.azure-dns.org"; dig A ns3-01.azure-dns.org -> 204.14.183.1 (origin 8075)
+    #   azure-dns.info: Same Learn page: "ns4-37.azure-dns.info"; dig A ns4-01.azure-dns.info -> 208.84.5.1 (origin 8075)
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "IaaS。PHPは利用者が管理。"
+        summary_en: "IaaS; the customer runs PHP."
+        customer_action: "サーバー管理者にPHP更新を依頼。"
+        customer_action_en: "Ask your administrator to update PHP."
+        verified_at: "2026-10-24"
+
+  - id: alibaba-cloud
+    name: "Alibaba Cloud"
+    name_ja: "Alibaba Cloud"
+    kind: cloud
+    asns: [45102]
+    #   45102: dig +short TXT AS45102.asn.cymru.com -> "45102 | CN | apnic | 2008-02-01 | ALIBABA-CN-NET - Alibaba (US) Techn…
+    as_name_contains: ["ALIBABA"]
+    #   ALIBABA: Cymru: "ALIBABA-CN-NET - Alibaba (US) Technology Co., Ltd., CN"
+    ns_suffixes: ["alidns.com", "hichina.com"]
+    #   alidns.com: https://www.alibabacloud.com/help/ja/dns/alibaba-cloud-dns-assigned-dns-server
+    #   hichina.com: https://www.alibabacloud.com/help/ja/dns/alibaba-cloud-dns-assigned-dns-server
+    notes: "The Tokyo region (ap-northeast-1) is on AS45102. Alibaba Cloud DNS name servers are under alidns.com and hichina.com."
+    notes_ja: "東京リージョン（ap-northeast-1）は AS45102。Alibaba Cloud DNS のネームサーバーは alidns.com / hichina.com。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "IaaS。PHPは利用者（または制作会社）が管理する。"
+        summary_en: "IaaS; the customer or their agency runs PHP."
+        customer_action: "サーバー管理者（自社または制作会社）にPHPまたはOSパッケージの更新を依頼する。"
+        customer_action_en: "Ask your administrator or agency to update PHP or the OS packages."
+        verified_at: "2026-10-24"
+
+  - id: vultr
+    name: "Vultr"
+    name_ja: "Vultr"
+    kind: cloud
+    asns: [20473]
+    #   20473: dig +short TXT AS20473.asn.cymru.com -> "AS-VULTR - The Constant Company, LLC, US"; customer NS ns1.vultr.com …
+    as_name_contains: ["VULTR"]
+    #   VULTR: Cymru AS name for 20473: AS-VULTR
+    ns_suffixes: ["vultr.com"]
+    #   vultr.com: https://docs.vultr.com/products/network/dns/point-to-vultr-name-servers
+    notes: "IaaS (VPS). The customer runs PHP."
+    notes_ja: "IaaS（VPS）。PHPは利用者が管理する。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "IaaS。PHPは利用者が管理。Vultr の Customer Advisory ページに php2shell に関する告知は見つからなかった。"
+        summary_en: "IaaS; the customer runs PHP. No php2shell notice was found on Vultr's Customer Advisory page."
+        customer_action: "サーバー管理者（自社または制作会社）にPHPまたはOSパッケージの更新を依頼。"
+        customer_action_en: "Ask your administrator or agency to update PHP or the OS packages."
+        verified_at: "2026-10-24"
+
+  - id: linode
+    name: "Linode / Akamai Cloud"
+    name_ja: "Linode（Akamai Cloud）"
+    kind: cloud
+    asns: [63949]
+    #   63949: dig +short TXT AS63949.asn.cymru.com -> "AKAMAI-LINODE-AP - Akamai Connected Cloud, SG"; techdocs.akamai.com h…
+    as_name_contains: ["LINODE"]
+    #   LINODE: Cymru AS name for 63949: AKAMAI-LINODE-AP
+    ns_suffixes: ["linode.com"]
+    #   linode.com: https://techdocs.akamai.com/cloud-computing/docs/configure-your-domains-authoritative-name-servers
+    notes: "IaaS (VPS). The customer runs PHP."
+    notes_ja: "IaaS（VPS）。PHPは利用者が管理する。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: official
+        date: "2026-10-22"
+        summary: "Akamai の公式ステータス「Customer Security Advisory」（10月21日掲載、10月22日更新）：自社基盤への影響を調査し、対策の一環として Cloud Infrastructure の速度テストを停止。Linode インスタンスで脆弱なPHPを動かしている利用者は、PHPの案内に従い上流の修正を適用するよう案内。修正版のバージョン番号は記載なし。"
+        summary_en: "Akamai status advisory (posted Oct 21, updated Oct 22): Akamai investigated the impact on its platform and took the Cloud Infrastructure speed tests offline as mitigation. Customers running vulnerable PHP on a Linode instance should follow PHP's guidance and apply upstream patches. No fixed version numbers given."
+        customer_action: "サーバー管理者（自社または制作会社）にPHPを修正版へ更新するよう依頼。"
+        customer_action_en: "Ask your administrator or agency to update PHP to a fixed release."
+        source: https://status.linode.com/incidents/wq8zlhk736fk
+        verified_at: "2026-10-24"
+
+  - id: digitalocean
+    name: "DigitalOcean"
+    name_ja: "DigitalOcean"
+    kind: cloud
+    asns: [14061]
+    #   14061: dig +short TXT AS14061.asn.cymru.com -> "DIGITALOCEAN-ASN - DigitalOcean, LLC, US"; docs.digitalocean.com/refe…
+    as_name_contains: ["DIGITALOCEAN"]
+    #   DIGITALOCEAN: Cymru AS name for 14061: DIGITALOCEAN-ASN
+    ns_suffixes: ["digitalocean.com"]
+    #   digitalocean.com: https://docs.digitalocean.com/products/networking/dns/getting-started/dns-registrars/
+    cname_suffixes: ["ondigitalocean.app"]
+    #   ondigitalocean.app: https://docs.digitalocean.com/products/app-platform/how-to/manage-domains/
+    notes: "IaaS (Droplets). The customer runs PHP. App Platform can also run PHP apps."
+    notes_ja: "IaaS（Droplet）。PHPは利用者が管理する。App Platform もPHPアプリを動かせる。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: secondary
+        summary: "IaaS。Droplet 上のPHPは利用者が管理。DigitalOcean の公式ステータスページに php2shell に関する告知は見つからなかった。"
+        summary_en: "IaaS; PHP on Droplets is run by the customer. No php2shell notice was found on DigitalOcean's status page."
+        customer_action: "サーバー管理者（自社または制作会社）にPHPまたはOSパッケージの更新を依頼。App Platform を使っている場合は修正版PHPで再デプロイされているか確認。"
+        customer_action_en: "Ask your administrator or agency to update PHP or the OS packages. On App Platform, confirm the app was redeployed on a fixed PHP."
+        verified_at: "2026-10-24"
+
+  - id: hetzner
+    name: "Hetzner"
+    name_ja: "Hetzner"
+    kind: cloud
+    asns: [24940]
+    #   24940: dig +short TXT AS24940.asn.cymru.com -> "HETZNER-AS - Hetzner Online GmbH, DE"; customer NS hydrogen.ns.hetzne…
+    as_name_contains: ["HETZNER"]
+    #   HETZNER: Cymru AS names: HETZNER-AS (24940), HETZNER-CLOUD2-AS (213230), both Hetzner Online GmbH
+    ns_suffixes: ["ns.hetzner.com", "ns.hetzner.de", "your-server.de", "second-ns.com", "second-ns.de", "first-ns.de"]
+    #   ns.hetzner.com: https://docs.hetzner.com/dns-console/dns/general/authoritative-name-servers/
+    #   ns.hetzner.de: Same page lists "helium.ns.hetzner.de."; dig A -> 193.47.99.5
+    #   your-server.de: Same page, konsoleH customers: "ns1.your-server.de."; dig A -> 213.133.100.102 (origin 24940)
+    #   second-ns.com: Same page: "ns.second-ns.com." (konsoleH) and "robotns3.second-ns.com." (secondary); dig A ns.second-ns.com ->…
+    #   second-ns.de: Same page: "ns3.second-ns.de." and "robotns2.second-ns.de."; dig A robotns2.second-ns.de -> 213.133.100.103 (o…
+    #   first-ns.de: Same page secondary: "ns1.first-ns.de."; dig A -> 213.239.242.238 (origin 24940)
+    notes: "Covers Webhosting, Managed Server, Cloud and dedicated servers. On Cloud and dedicated servers the customer runs PHP; the provider's patch status applies to Webhosting and Managed Servers only."
+    notes_ja: "Webhosting・マネージドサーバー・Cloud・専用サーバーを含む。Cloud と専用サーバーではPHPは利用者が管理するため、事業者の対応状況は Webhosting とマネージドサーバーにのみ当てはまる。"
+    incidents:
+      php2shell:
+        status: "n/a"
+        confidence: official
+        date: "2026-10-22"
+        summary: "Cloud・専用サーバーはIaaSで、PHPは利用者が管理する（Hetznerは別途メールで連絡するとしている）。Hetznerが運用するWebhostingとマネージドサーバーについては、公式ステータス（10月22日 04:32 UTC 更新）によると、10月21日 17:50 UTC に PHP 7.4・8.0〜8.5、10月22日 04:32 UTC に 5.6・7.3 のパッチを全台に適用済み。バージョン表示が変わるかどうかは記載なし。"
+        summary_en: "Cloud and dedicated servers are IaaS: the customer runs PHP (Hetzner says it will email those customers separately). For Hetzner-run Webhosting and Managed Servers, the status page (updated Oct 22 04:32 UTC) says patches were deployed on all servers for PHP 7.4 and 8.0-8.5 at 17:50 UTC on Oct 21 and for 5.6 and 7.3 at 04:32 UTC on Oct 22. It does not say whether version strings changed."
+        customer_action: "Webhosting・マネージドサーバー利用者は、不審な動きがないか監視するよう案内されている。Cloud・専用サーバー利用者は自分でPHPまたはOSパッケージを更新する必要がある（サーバー管理者に依頼）。"
+        customer_action_en: "Webhosting and Managed Server customers are told to monitor for suspicious activity. Cloud and dedicated server customers must update PHP or OS packages themselves (ask your administrator)."
+        source: https://status.hetzner.com/incident/f4144d55-38c3-48d1-8664-7a3429355cd7
+        verified_at: "2026-10-24"
+
+  # ---- Hosting on a cloud's network: listed after that cloud, so an address alone shows the cloud and the host's name servers pick the host.
+
+  - id: siteground
+    name: "SiteGround"
+    name_ja: "SiteGround"
+    kind: hosting
+    asns: [15169, 396982]
+    #   15169, 396982: shared with google-cloud, listed after it. phyllistsoi.com and fishbugz.com (NS ns1/ns2.siteground.net) -> 35.213.197.246 / 35.213.212.197, Cymru origins 15169 and 19527 (35.213.192.0/18); idigitalprint.com -> 34.174.223.175, origin "396982 | 34.174.128.0/17" (2026-10-26)
+    ns_suffixes: ["siteground.net"]
+    #   siteground.net: https://www.siteground.com/kb/point-domain-siteground ("ns1.siteground.net", "ns2.siteground.net"); dig +short NS phyllistsoi.com / fishbugz.com / idigitalprint.com -> ns1/ns2.siteground.net, web addresses in Google Cloud (35.213.197.246, 35.213.212.197, 34.174.223.175) (2026-10-26)
+    notes: "SiteGround's servers run on Google Cloud (observed origins AS15169, AS19527, AS43515, AS396982). It is listed after google-cloud with Google's two cloud ASNs, so the name servers (ns1/ns2.siteground.net) identify SiteGround; a site that only points an A record to SiteGround shows as Google Cloud, and one in AS19527 or AS43515 as unmatched."
+    notes_ja: "SiteGroundのサーバーはGoogle Cloud上にある（確認したAS：15169、19527、43515、396982）。google-cloudの後にGoogleの2つのASとともに載せており、ネームサーバー（ns1／ns2.siteground.net）でSiteGroundと判別する。Aレコードだけを向けたサイトはGoogle Cloud、AS19527・AS43515のアドレスは一覧外と表示される。"
+    news: https://www.siteground.com/blog/
+    #   Checked 2026-10-26: lists the cited post among product posts; /blog/feed/ returns 404.
+    incidents:
+      php2shell:
+        status: "patched"
+        confidence: official
+        date: "2026-10-21"
+        summary: "公式ブログ（10月21日、22日12:00 UTC更新）：修正版の公開前に全サーバーへサーバー側の緩和ルールを入れ、提供中の全PHPバージョンで該当機能を無効化した。10月21日に修正版が公開されると「SiteGroundの全サーバーに適用した」とし、利用者の作業は不要としている。スタッフのコメント（10月22日・23日）では、Managed PHPか手動選択かにかかわらず、PHP 7.4を含むSite Toolsの全バージョンが保護されているとするが、7.4〜8.1については「サーバー側の緩和策」と書いており、コードの修正が入ったかどうかは書かれていない。"
+        summary_en: "Official blog (Oct 21, updated 12:00 UTC Oct 22): before the release SiteGround deployed server-level mitigation rules on all servers and disabled the affected functionality on all supported PHP versions; once PHP released the fixes on Oct 21 it 'applied them across all SiteGround servers' and says customers need do nothing. Staff comments (Oct 22-23) say every PHP version in Site Tools, including 7.4, is covered whether Managed PHP or manually selected, but describe 7.4-8.1 as covered by 'server-level security mitigations'; they do not say a code fix was applied to those."
+        customer_action: "今回の対策のための作業は不要とされる。PHP 8.1以前（7.4など）を手動で選んでいる場合は、開発元の修正がないため、Site ToolsでManaged PHPか8.2以降へ切り替えることを検討。"
+        customer_action_en: "SiteGround says no action is needed. Sites manually pinned to PHP 8.1 or older (e.g. 7.4) have no upstream fix, so consider switching to Managed PHP or 8.2+ in Site Tools."
+        source: https://www.siteground.com/blog/critical-php-vulnerabilities-october-2026
+        verified_at: "2026-10-26"
+
+  # ---- CDN (hides the origin)
+
+  - id: cloudflare
+    name: "Cloudflare"
+    name_ja: "Cloudflare"
+    kind: cdn
+    asns: [13335]
+    #   13335: CLOUDFLARENET (Cymru 2026-10-24)
+    as_name_contains: ["CLOUDFLARE"]
+    ns_suffixes: ["ns.cloudflare.com"]
+    #   ns.cloudflare.com: zone of cloudflare.com; seen on mixhost.jp, gohugo.io (2026-10-24)
+    cname_suffixes: ["cdn.cloudflare.net"]
+    #   cdn.cloudflare.net: zone of cloudflare.net (SOA dns.cloudflare.com); seen on www.kagoya.jp (2026-10-24)
+    notes: "Traffic terminates at Cloudflare; the origin host that runs PHP is not visible from outside."
+    notes_ja: "通信はCloudflareで終端される。PHPを動かしているオリジンサーバーは外部から見えない。"
+
+  - id: fastly
+    name: "Fastly"
+    name_ja: "Fastly"
+    kind: cdn
+    asns: [54113]
+    #   54113: FASTLY - Fastly, Inc. (Cymru 2026-10-24)
+    as_name_contains: ["FASTLY"]
+    cname_suffixes: ["fastly.net", "fastlylb.net"]
+    #   fastly.net: SOA hostmaster.fastly.com
+    #   fastlylb.net: SOA hostmaster.fastly.com
+
+  - id: akamai
+    name: "Akamai"
+    name_ja: "Akamai"
+    kind: cdn
+    asns: [20940, 16625]
+    #   20940: AKAMAI-ASN1 (Cymru 2026-10-24)
+    #   16625: AKAMAI-AS (Cymru 2026-10-24)
+    as_name_contains: ["AKAMAI"]
+    #   AKAMAI: listed after linode, whose AS name also contains AKAMAI
+    cname_suffixes: ["akamaiedge.net", "akamaized.net", "edgekey.net", "edgesuite.net"]
+    #   akamaiedge.net: SOA hostmaster.akamai.com
+    #   akamaized.net: SOA hostmaster.akamai.com
+    #   edgekey.net: SOA hostmaster.akamai.com
+    #   edgesuite.net: SOA hostmaster.akamai.com
+
+  - id: bunnycdn
+    name: "bunny.net"
+    name_ja: "bunny.net"
+    kind: cdn
+    asns: [200325]
+    #   200325: dig +short TXT AS200325.asn.cymru.com -> "BunnyCDN - BUNNYWAY, informacijske storitve d.o.o., SI"; customer NS…
+    as_name_contains: ["BUNNYWAY"]
+    #   BUNNYWAY: Cymru AS name for 200325: BunnyCDN - BUNNYWAY, informacijske storitve d.o.o.
+    ns_suffixes: ["bunny.net"]
+    #   bunny.net: https://bunny.net/docs/dns/nameservers
+    cname_suffixes: ["b-cdn.net"]
+    #   b-cdn.net: https://bunny.net/docs/cdn/custom-hostname
+    notes: "Traffic terminates at bunny.net; the origin host that runs PHP is not visible from outside."
+    notes_ja: "通信はbunny.netで終端される。PHPを動かしているオリジンサーバーは外部から見えない。"
+
+  - id: cdn77
+    name: "CDN77"
+    name_ja: "CDN77"
+    kind: cdn
+    cname_suffixes: ["rsc.cdn77.org"]
+    #   rsc.cdn77.org: https://client.cdn77.com/support/knowledgebase/introduction-to-cdn/getting-started
+    notes: "Traffic terminates at CDN77; the origin host that runs PHP is not visible from outside."
+    notes_ja: "通信はCDN77で終端される。PHPを動かしているオリジンサーバーは外部から見えない。"
+
+  # ---- DNS only
+
+  - id: onamae-dns
+    name: "Onamae.com DNS (GMO Internet)"
+    name_ja: "お名前.com（DNS／レジストラ）"
+    kind: dns
+    ns_suffixes: ["onamae.com"]
+    #   onamae.com: https://www.onamae.com/guide/p/67
+    notes: "Name servers only. The web host is whoever the A record points to."
+    notes_ja: "ネームサーバーのみ。Webサーバーは A レコードの指す先の事業者。"
+
+  - id: muumuu-dns
+    name: "Muumuu Domain DNS (GMO Pepabo)"
+    name_ja: "ムームードメイン（DNS）"
+    kind: dns
+    ns_suffixes: ["muumuu-domain.com"]
+    #   muumuu-domain.com: https://heteml.jp/info/detail/id/1513/
+    notes: "Name servers only; the web host is whoever the A record points to. Choosing Lolipop in Muumuu Domain sets the name servers to uns01/uns02.lolipop.jp instead."
+    notes_ja: "ネームサーバーのみ。Webサーバーは A レコードの指す先の事業者。ムームードメインで「ロリポップ！」を選んだ場合のネームサーバーは uns01／uns02.lolipop.jp になる。"
+
+  - id: value-domain
+    name: "Value-Domain DNS"
+    name_ja: "バリュードメイン（DNS）"
+    kind: dns
+    ns_suffixes: ["value-domain.com"]
+    #   value-domain.com: https://www.value-domain.com/userguide/manual/freedns
+    notes: "Name servers only; the web host is whoever the A record points to. The same name servers are used for XREA, CORESERVER and VALUE-SERVER (all GMO DigiRock, provider-run PHP), so identify the web host from the A record."
+    notes_ja: "ネームサーバーのみ。WebサーバーはAレコードの指す先の事業者。同じネームサーバーがXREA、コアサーバー、バリューサーバー（いずれもGMOデジロック運営、PHPは事業者が管理）でも使われるため、Webの事業者はAレコードで判断する。"
+
+  - id: gehirn-dns
+    name: "Gehirn DNS"
+    name_ja: "Gehirn DNS"
+    kind: dns
+    ns_suffixes: ["gehirndns.com", "gehirndns.org", "gehirndns.net", "gehirndns.jp"]
+    #   gehirndns.com: https://support.gehirn.jp/faq/2017/10/05/831/
+    #   gehirndns.org: https://support.gehirn.jp/faq/2017/10/05/831/
+    #   gehirndns.net: https://support.gehirn.jp/faq/2017/10/05/831/
+    #   gehirndns.jp: https://support.gehirn.jp/faq/2017/10/05/831/
+    notes: "Authoritative DNS service from Gehirn Inc."
+    notes_ja: "ゲヒルン株式会社の権威DNSサービス。"
+
+  - id: godaddy-dns
+    name: "GoDaddy DNS"
+    name_ja: "GoDaddy（DNS／レジストラ）"
+    kind: dns
+    ns_suffixes: ["domaincontrol.com"]
+    #   domaincontrol.com: dig +short A ns01.domaincontrol.com -> 97.74.100.1 (PTR ns01.domaincontrol.com), Cymru origins "44273 | 97.74.100.0/23" and "26496 | 97.74.96.0/19"; dig +short TXT AS44273.asn.cymru.com -> "GODADDY-DNS - Host Europe GmbH, DE"; ns51.domaincontrol.com -> 97.74.105.26, same ASes (2026-10-26)
+    notes: "Name servers only. GoDaddy is the default DNS for domains registered there, wherever the site is hosted; the web host is whoever the A record points to."
+    notes_ja: "ネームサーバーのみ。GoDaddyで登録したドメインは、サイトの場所に関係なくこのDNSを使う。WebサーバーはAレコードの指す先の事業者。"
+
+  - id: ionos-dns
+    name: "IONOS DNS"
+    name_ja: "IONOS（DNS／レジストラ）"
+    kind: dns
+    ns_suffixes: ["ui-dns.de", "ui-dns.biz", "ui-dns.org", "ui-dns.com"]
+    #   ui-dns.de: https://www.ionos.co.uk/help/domains/general-information-about-dns-settings/default-dns-settings-for-11-ionos-domains/ ("ns1ZZZ.ui-dns.de"); dig +short A ns1068.ui-dns.de -> 185.132.32.68, origin "15418 | 185.132.32.0/22", AS name "IONOS-ANYCAST - Fasthosts Internet Limited, GB" (2026-10-26)
+    #   ui-dns.biz: Same page: "ns1ZZZ.ui-dns.biz"
+    #   ui-dns.org: Same page: "ns1ZZZ.ui-dns.org"
+    #   ui-dns.com: Same page: "ns1ZZZ.ui-dns.com"; dig +short A ns1068.ui-dns.com -> 185.132.34.68 (origin 15418) (2026-10-26)
+    notes: "Name servers only. Domains registered at IONOS use them wherever the site is hosted (seen in front of Bluehost, all-inkl and Verizon addresses); the web host is whoever the A record points to."
+    notes_ja: "ネームサーバーのみ。IONOSで登録したドメインはサイトの場所に関係なくこのDNSを使う（Bluehost、all-inkl、Verizonのアドレスを指す例を確認）。WebサーバーはAレコードの指す先の事業者。"
+
+  # ---- Certificate authorities: recognised from the organization (O) of the CA that issued the site's TLS certificate, read in one TLS 1.2 handshake.
+
+  - id: emudhra
+    name: "eMudhra (emSign)"
+    name_ja: "eMudhra（emSign）"
+    kind: ca
+    cert_issuers: ["eMudhra"]
+    #   eMudhra: issuer of www.cca.gov.in's certificate is "CN=EM DV TLS CA - G2A-1, O=eMudhra Technologies Limited" (openssl s_client, 2026-10-24); the compromised intermediates are "O=eMudhra BV" and "O=eMudhra Inc" (https://emudhra.we-have-a-problem.com/impacted-intermediates.json)
+    distrusted_roots: ["emSign ECC Root CA - G3"]
+    #   emSign ECC Root CA - G3: removed from NSS (Firefox) on 2026-10-20, https://bugzilla.mozilla.org/show_bug.cgi?id=2084101
+    notes: "Indian certificate authority. Its emSign G1 roots are still trusted; emSign ECC Root CA - G3 has been removed from Firefox. eMudhra's statement says G1-root certificates remain fully supported; the press (The Register, Oct 22) reports that it is leaving the public TLS certificate business."
+    notes_ja: "インドの認証局。emSign の G1 ルートは引き続き信頼されているが、emSign ECC Root CA - G3 は Firefox から削除された。eMudhra の声明では G1 ルートの証明書は引き続きサポートされるとしている。報道（The Register、10月22日）では公開サーバー証明書の事業から撤退すると伝えられている。"
+    incidents:
+      emudhra-2026-10:
+        title: "2026年10月の中間CA秘密鍵の問題（CVE-2026-111943）"
+        title_en: "October 2026 intermediate CA key compromise (CVE-2026-111943)"
+        status: "in_progress"
+        confidence: official
+        date: "2026-10-26"
+        summary: "公式声明（10月20日公開、26日更新、調査継続中）：2025年4月30日に作成した中間CA 8つの秘密鍵に問題があり（10月17日に外部の研究者が報告）、悪用されれば任意のドメインの証明書を発行できた。eMudhraは10月18日に8つすべてを失効させた。8つのうち7つは本番で使われておらず、使われた1つもサイト向けの証明書を発行していないとしている。ブラウザ各社が対象を遮断し、Mozillaは10月20日にこれらの上位の emSign ECC Root CA - G3 を削除した。影響はこのルートにつながる証明書に限られ（米国の1顧客グループ）、G1 ルートの証明書は引き続き有効で、eSignature などの利用者は対応不要としている。希望者には Sectigo 発行の証明書も提供する。10月26日の謝罪声明では、原因はスクリプトの誤りで弱い鍵のCAを発行したことだと認め、問題の確認から14時間以内に失効させたこと、インフラや顧客データの侵害はないことを説明し、影響を受けたG3の顧客と影響のないTLSの顧客を無償で別の証明書へ移行中とした。CCADBを通じて原因分析を公表し、外部の専門家による検証も依頼するとしている。"
+        summary_en: "Official statement (published Oct 20, updated Oct 26, investigation ongoing): the private keys of eight intermediate CAs created on 2025-04-30 were flawed (reported by an outside researcher on Oct 17); misused, they could issue certificates for any domain. eMudhra revoked all eight on Oct 18. Seven were never used in production and the one that was issued no site certificates, it says. Browsers blocked them, and Mozilla removed their root, emSign ECC Root CA - G3, on Oct 20. Impact is limited to certificates chaining to that root (one customer group in the US); G1-root certificates remain valid and eSignature and similar customers need do nothing. Sectigo-issued certificates are offered as an alternative. In a public apology on Oct 26 it said a script error issued the CAs with weak keys, that they were revoked within 14 hours of confirming the issue, and that its infrastructure and customer data were not compromised; it is moving affected G3 customers and its other TLS customers to alternate certificates at no cost. It will publish a root-cause analysis through CCADB and has commissioned an independent review."
+        customer_action: "証明書が emSign ECC Root CA - G3 につながっている場合は、すでに Firefox などでエラーになるため、至急別の認証局の証明書に入れ替える。eMudhra の G1 ルートの証明書は声明では対応不要で、eMudhra は無償で別の証明書への移行を進めているが、事業撤退の報道もあるため、更新時期に別の認証局（Let's Encrypt やホスティング事業者の無料証明書など）への切替を検討する。サーバーから外部へ HTTPS 接続する場合（PHP の cURL など）は、OS の ca-certificates を更新する。"
+        customer_action_en: "If the certificate chains to emSign ECC Root CA - G3, it already fails in Firefox and others: replace it with one from another CA now. eMudhra's G1-root certificates need no action according to its statement, and it is moving TLS customers to alternate certificates at no cost, but given reports that it is leaving the business, consider moving to another CA (Let's Encrypt, or your host's free certificate) at renewal. If your server makes outbound HTTPS calls (PHP's cURL, for example), update the OS ca-certificates package."
+        source: https://emudhra.com/en/post/certificate-security-incident
+        verified_at: "2026-10-26"
+
+  # ---- Mail
+
+  - id: google-workspace
+    name: "Google Workspace (mail)"
+    name_ja: "Google Workspace（メール）"
+    kind: mail
+    mx_suffixes: ["google.com", "googlemail.com"]
+    #   google.com: SOA dns-admin.google.com; aspmx.l.google.com seen on gohugo.io (2026-10-24)
+    #   googlemail.com: SOA dns-admin.google.com
+
+  - id: microsoft-365
+    name: "Microsoft 365 (mail)"
+    name_ja: "Microsoft 365（メール）"
+    kind: mail
+    mx_suffixes: ["mail.protection.outlook.com"]
+    #   mail.protection.outlook.com: microsoft.com MX microsoft-com.mail.protection.outlook.com; zone SOA o365filtering.com (2026-10-24)
+
+  - id: sakura-mail
+    name: "SAKURA internet (mail)"
+    name_ja: "さくらインターネット（メール）"
+    kind: mail
+    mx_suffixes: ["sakura.ne.jp"]
+    #   sakura.ne.jp: https://help.sakura.ad.jp/domain/2151/
+    notes: "An MX pointing to an initial domain (xxx.sakura.ne.jp) means mail is handled by SAKURA internet's Mailbox or rental server; the MX does not tell which plan. The web host is whoever the A record points to."
+    notes_ja: "MXが初期ドメイン（○○.sakura.ne.jp）を指していれば、メールはさくらインターネットのメールボックスまたはレンタルサーバが受けている。どちらのプランかはMXからは分からない。Webサーバーは A レコードの指す先の事業者。"
+
+  - id: zoho-mail
+    name: "Zoho Mail"
+    name_ja: "Zoho Mail"
+    kind: mail
+    mx_suffixes: ["zoho.com", "zoho.jp"]
+    #   zoho.com: https://www.zoho.com/mail/help/adminconsole/configure-email-delivery.html
+    #   zoho.jp: dig +short MX zoho.jp -> 10 mx.zoho.jp.; dig +short A mx.zoho.jp -> 193.118.161.144; dig +short TXT 144.161.11…
+    notes: "Mail only; the web host is whoever the A record points to. The MX domain varies by Zoho data centre (Japan uses zoho.jp)."
+    notes_ja: "メールのみ。Webサーバーは A レコードの指す先の事業者。MXのドメインはデータセンターごとに異なる（日本は zoho.jp）。"
+
+  - id: proofpoint
+    name: "Proofpoint (mail filter)"
+    name_ja: "Proofpoint（メールフィルタ）"
+    kind: mail
+    mx_suffixes: ["ppe-hosted.com", "pphosted.com"]
+    #   ppe-hosted.com: https://www.proofpoint.com/sites/default/files/getting_started_guide_us1-cm.pdf
+    #   pphosted.com: dig +short MX proofpoint.com -> 10 mxa-00148501.gslb.pphosted.com., 15 mx0a-00148501.pphosted.com.; dig +short…
+    notes: "Mail filtering front-end; the mailbox may be hosted elsewhere. The web host is whoever the A record points to."
+    notes_ja: "メール中継（フィルタリング）サービス。実際のメールボックスは別の事業者の場合がある。Webサーバーは A レコードの指す先の事業者。"
+
+  - id: mimecast
+    name: "Mimecast (mail filter)"
+    name_ja: "Mimecast（メールフィルタ）"
+    kind: mail
+    mx_suffixes: ["mimecast.com"]
+    #   mimecast.com: https://integrations.mimecast.com/-/media/integrations/downloads/integrating_mimecast_with_echoworx.pdf
+    notes: "Mail filtering front-end; the mailbox may be hosted elsewhere. The web host is whoever the A record points to."
+    notes_ja: "メール中継（フィルタリング）サービス。実際のメールボックスは別の事業者の場合がある。Webサーバーは A レコードの指す先の事業者。"

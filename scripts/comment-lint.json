@@ -1,0 +1,39 @@
+{
+  "exclude": [],
+  "allow": {
+    "lib/safety.ts": [
+      "// Cloudflare's published ranges (https://www.cloudflare.com/ips-v4 and",
+      "// ips-v6, read 2026-10-25). Workers cannot open sockets to them, so a page",
+      "// behind Cloudflare's proxy is requested with fetch() instead."
+    ],
+    "lib/tls.ts": [
+      "// Reads which certificate authority issued a site's certificate, from the",
+      "// start of one TLS 1.2 handshake: a ClientHello, then the server's",
+      "// Certificate message, which TLS 1.2 sends unencrypted (TLS 1.3 encrypts",
+      "// it, so a server that speaks only 1.3 gives no answer). The connection is",
+      "// closed once the certificates arrive; no key exchange, no HTTP request.",
+      "// Runtime-neutral: the Worker feeds it a cloudflare:sockets connection."
+    ],
+    "scripts/dev.ts": [
+      "// The local Workers runtime trusts the system's CA file, which on macOS lacks",
+      "// newer roots such as GlobalSign Root R46, so https to sites under them fails",
+      "// as \"cannot connect\". Give it the current Mozilla roots that ship with Bun.",
+      "// Deployed, the Worker uses Cloudflare's trust store instead."
+    ],
+    "worker/certs.ts": [
+      "// Workers cannot open sockets to Cloudflare's addresses; visitors of a",
+      "// proxied site get Cloudflare's certificate there, not the origin's."
+    ],
+    "worker/php.ts": [
+      "// A cross-site form can send text/plain without a preflight; requiring",
+      "// JSON means another site's page cannot make a visitor's browser call us."
+    ],
+    "worker/pinned.ts": [
+      "// The page request on Cloudflare's TCP sockets, which (unlike fetch()) adds no",
+      "// CF-Worker header for a site's firewall to refuse. Plain http connects to the",
+      "// address safeTransport checked, so DNS is not consulted again and a name that",
+      "// answers differently a second time cannot redirect it. https connects to the",
+      "// name, whose certificate the handshake checks (see safeTransport)."
+    ]
+  }
+}

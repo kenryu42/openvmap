@@ -1,0 +1,157 @@
+{
+  "tool": "OpenVMap",
+  "version": "test",
+  "incident": "php2shell",
+  "domain": "example.co.jp",
+  "checked_at": "2026-10-23T18:00:00Z",
+  "ns": [
+    {
+      "host": "ns1.xserver.jp",
+      "provider_id": "xserver"
+    },
+    {
+      "host": "ns2.xserver.jp",
+      "provider_id": "xserver"
+    }
+  ],
+  "mx": [
+    {
+      "host": "aspmx.l.google.com",
+      "provider_id": "google-workspace"
+    }
+  ],
+  "hosts": [
+    {
+      "name": "example.co.jp",
+      "ips": [
+        {
+          "ip": "183.90.224.10",
+          "asn": 131965,
+          "as_name": "XSERVER-AS Xserver Inc., JP",
+          "prefix": "183.90.224.0/19",
+          "provider_id": "xserver"
+        }
+      ]
+    },
+    {
+      "name": "www.example.co.jp",
+      "cname": "example-co-jp.cdn.cloudflare.net",
+      "cname_provider_id": "cloudflare",
+      "ips": [
+        {
+          "ip": "104.16.132.229",
+          "asn": 13335,
+          "as_name": "CLOUDFLARENET, US",
+          "prefix": "104.16.0.0/12",
+          "provider_id": "cloudflare"
+        }
+      ]
+    }
+  ],
+  "providers": [
+    {
+      "id": "xserver",
+      "name": "Xserver",
+      "name_ja": "エックスサーバー",
+      "kind": "hosting",
+      "roles": [
+        "ns",
+        "web"
+      ],
+      "evidence": [
+        "NS ns1.xserver.jp",
+        "NS ns2.xserver.jp",
+        "example.co.jp 183.90.224.10 AS131965 XSERVER-AS Xserver Inc., JP"
+      ],
+      "incident": {
+        "status": "patched",
+        "confidence": "official",
+        "date": "2026-10-22",
+        "summary": "公式発表（2026年10月22日）によると、PHP 8.2〜8.5 の修正パッチは 10月22日 6:45、PHP 7.4〜8.1 は 12:00、PHP 5.6〜7.3 は 14:00 に 対象の全サーバーへ適用完了。PHP 5.1〜5.5 は 10月23日 17:00 時点で 対象サーバーの過半数に適用済み。公式修正版のない 8.1 以前には独自 修正を適用。",
+        "summary_en": "Official notice (2026-10-22): fix applied to all servers for PHP 8.2-8.5 by 06:45 on Oct 22, PHP 7.4-8.1 by 12:00, PHP 5.6-7.3 by 14:00. PHP 5.1-5.5: majority of servers done as of Oct 23 17:00. Own patch applied to branches with no official fix.",
+        "customer_action": "サーバーパネル「PHP Ver.切替」で各ドメインのPHPバージョンを確認。 8.1 以前で稼働しているサイトは、サポート対象の 8.3 または 8.4 への 切替を検討（切替前にバックアップと動作確認）。",
+        "customer_action_en": "Check each domain's PHP version in the server panel. Sites on 8.1 or older should plan a move to 8.3 or 8.4 after a backup and test.",
+        "source": "https://www.xserver.ne.jp/news_detail.php?view_id=19734",
+        "verified_at": "2026-10-23"
+      }
+    },
+    {
+      "id": "cloudflare",
+      "name": "Cloudflare",
+      "name_ja": "Cloudflare",
+      "kind": "cdn",
+      "roles": [
+        "cname",
+        "web"
+      ],
+      "evidence": [
+        "www.example.co.jp CNAME example-co-jp.cdn.cloudflare.net",
+        "www.example.co.jp 104.16.132.229 AS13335 CLOUDFLARENET, US"
+      ],
+      "notes": "Traffic terminates at Cloudflare; the origin host that runs PHP is not visible from outside.",
+      "notes_ja": "通信はCloudflareで終端される。PHPを動かしているオリジンサーバーは外部から見えない。"
+    },
+    {
+      "id": "google-workspace",
+      "name": "Google Workspace (mail)",
+      "name_ja": "Google Workspace（メール）",
+      "kind": "mail",
+      "roles": [
+        "mx"
+      ],
+      "evidence": [
+        "MX aspmx.l.google.com"
+      ]
+    }
+  ],
+  "http": {
+    "url": "http://example.co.jp/",
+    "final_url": "http://example.co.jp/",
+    "status": 200,
+    "server": "LiteSpeed"
+  },
+  "php": {
+    "verdict": "likely",
+    "score": 18,
+    "signals": [
+      {
+        "kind": "x-powered-by",
+        "evidence": "PHP/8.3.35",
+        "weight": 6
+      },
+      {
+        "kind": "server",
+        "evidence": "LiteSpeed",
+        "weight": 1
+      },
+      {
+        "kind": "cookie",
+        "evidence": "PHPSESSID",
+        "weight": 6
+      },
+      {
+        "kind": "generator",
+        "evidence": "WordPress 6.6.2",
+        "weight": 0
+      },
+      {
+        "kind": "cms",
+        "evidence": "WordPress: generator meta",
+        "weight": 5
+      }
+    ],
+    "cms": [
+      "WordPress"
+    ],
+    "php_version": "8.3.35",
+    "version_status": "below_fixed_release"
+  },
+  "actions": [
+    "【エックスサーバー】は対応完了を発表しています（公式発表、2026-10-22）。サーバーパネル「PHP Ver.切替」で各ドメインのPHPバージョンを確認。 8.1 以前で稼働しているサイトは、サポート対象の 8.3 または 8.4 への 切替を検討（切替前にバックアップと動作確認）。",
+    "トップページの応答からPHPの利用が強く示唆されます（PHP/8.3.35, LiteSpeed, PHPSESSID, WordPress: generator meta）。このサイトは今回の脆弱性の対象です。",
+    "応答ヘッダのPHPバージョン 8.3.35 は修正版（8.3.36）より古い表示です。ただし事業者やディストリビューションはバージョン番号を変えずに修正を適用することがあるため、これだけでは未修正とは断定できません。事業者に確認してください。",
+    "修正方法は PHP を修正版（8.5.12 / 8.4.27 / 8.3.36 / 8.2.35）または事業者の修正済みビルドに更新することだけです。「AI脆弱性診断」などの外部診断サービスはサーバーのPHPを更新しません。見積もりが届いても、まず上の確認を済ませてください。",
+    "参考: IPA 注意喚起 https://www.ipa.go.jp/security/security-alert/2026/alert20261022.html / JPCERT/CC 注意喚起 https://www.jpcert.or.jp/at/2026/at260033.html"
+  ],
+  "message_template": "件名: PHPの脆弱性（CVE-2026-109618 / CVE-2026-109619）への対応状況のご確認\n\nエックスサーバー ご担当者様\n\nお世話になっております。\n2026年10月21日に公開されたPHPの脆弱性（CVE-2026-109618、CVE-2026-109619、通称 php2shell）について、\n弊社サイト（example.co.jp）に関する以下の点をご確認いただけますでしょうか。\n\n1. 弊社サイトが稼働しているPHPのバージョン\n2. 修正版（8.5.12 / 8.4.27 / 8.3.36 / 8.2.35）または同等の修正パッチの適用状況。\n   未適用の場合は、適用予定日時\n3. PHP 8.1 以前で稼働している場合、サポート対象バージョンへの移行の要否・手順・費用\n4. 10月17日以降の不審なアクセスや侵害の痕跡の有無\n   （JPCERT/CC は、異常に長い PHPSESSID Cookie などを確認観点として挙げています）\n5. 更新作業を実際に担当する会社（再委託先を含めて）と、弊社側の窓口\n6. 更新が終わるまでの間の対策（アクセス制限や一時的な公開停止など）の要否\n\n参考:\n- IPA 注意喚起: https://www.ipa.go.jp/security/security-alert/2026/alert20261022.html\n- JPCERT/CC 注意喚起: https://www.jpcert.or.jp/at/2026/at260033.html\n\nお手数をおかけしますが、よろしくお願いいたします。"
+}

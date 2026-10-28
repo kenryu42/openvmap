@@ -1,0 +1,6 @@
+{
+  "path": ["."],
+  "format": ["typescript", "tsx", "javascript", "jsx"],
+  "ignore": ["**/node_modules/**", "**/.next/**", "out/**", ".wrangler/**", "test/golden/**", "test/fixtures/**"],
+  "gitignore": true
+}

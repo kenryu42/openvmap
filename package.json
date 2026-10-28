@@ -1,0 +1,59 @@
+{
+  "name": "vmap",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "bun scripts/dev.ts",
+    "build": "next build",
+    "preview": "next build && wrangler dev",
+    "deploy": "next build && wrangler deploy",
+    "check": "bun run typecheck && bun run lint && bun run format:check && bun run lint:dup && bun run knip && bun run lint:comments && bun run validate-providers && bun run validate-tools && bun run test && bun run build",
+    "lint": "next typegen && oxlint",
+    "lint:fix": "oxlint --fix",
+    "lint:dup": "jscpd --threshold 0 --exit-code 1 --no-tips --reporters ai",
+    "lint:comments": "bun scripts/lint-comments.mjs",
+    "format": "oxfmt",
+    "format:check": "oxfmt --check",
+    "knip": "knip",
+    "test": "vitest run",
+    "validate-providers": "bun scripts/validate-providers.ts",
+    "validate-tools": "bun scripts/validate-tools.ts",
+    "check-tools": "bun scripts/check-tools.ts",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit -p worker",
+    "check-sources": "bun scripts/check-sources.ts"
+  },
+  "dependencies": {
+    "@phosphor-icons/react": "2.1.10",
+    "js-yaml": "^5.5.0",
+    "marked": "^18.1.1",
+    "next": "16.4.3",
+    "react": "19.3.0",
+    "react-dom": "19.3.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "5.20261023.1",
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "jscpd": "5.4.2",
+    "knip": "6.43.0",
+    "oxc-parser": "0.156.0",
+    "oxfmt": "0.75.0",
+    "oxlint": "1.90.0",
+    "oxlint-tsgolint": "7.0.2005",
+    "tailwindcss": "^4",
+    "typescript": "7.0.2",
+    "vitest": "^5.0.5",
+    "wrangler": "4.154.0"
+  },
+  "packageManager": "bun@1.4.4",
+  "ignoreScripts": [
+    "sharp",
+    "unrs-resolver"
+  ],
+  "trustedDependencies": [
+    "sharp",
+    "unrs-resolver"
+  ]
+}

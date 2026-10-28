@@ -1,0 +1,36 @@
+# Domains the integration test checks live (VMAP_NETWORK=1 bun run test).
+# Each check is public DNS, Team Cymru, and one GET of / on the domain.
+# Only list domains you own or are authorised to check; the vendors' own
+# home pages below were named for this purpose in the 2026-10-24 run.
+#
+# expect: provider:role pairs that must be in the report.
+# expect_verdict: the PHP verdict, where the front page made it clear.
+# Observed 2026-10-24.
+
+- domain: www.xserver.ne.jp
+  expect: [xserver:web, xserver:ns]
+- domain: www.sakura.ad.jp
+  expect: [sakura:web, sakura:ns]
+- domain: lolipop.jp
+  expect: [lolipop:web, lolipop:ns]
+  expect_verdict: likely
+- domain: www.conoha.jp
+  expect: [cloudflare:web]
+- domain: mixhost.jp
+  expect: [cloudflare:web, cloudflare:ns]
+- domain: www.kagoya.jp
+  expect: [cloudflare:web, cloudflare:cname, kagoya:ns]
+  expect_verdict: likely
+- domain: www.cpi.ad.jp
+  expect: [aws:web, cpi:ns]
+- domain: www.php.net
+  expect: [bunnycdn:cname]
+  expect_verdict: possible
+- domain: gohugo.io
+  expect: [aws:web, cloudflare:ns, google-workspace:mx]
+- domain: nextjs.org
+  expect: [vercel:ns, vercel:cname, aws:web, google-workspace:mx]
+  expect_verdict: unlikely
+- domain: nonexistent-vmap-probe.invalid
+  expect: []
+  expect_no_hosts: true

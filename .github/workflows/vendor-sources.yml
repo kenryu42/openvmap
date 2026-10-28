@@ -1,0 +1,146 @@
+# Every day, compare each vendor announcement cited in data/providers.yaml
+# with the version last accepted and look for new posts on each provider's
+# news list (scripts/check-sources.ts). When something changed, Claude reads
+# the saved pages with the update-vendor-status skill and edits the table;
+# scripts/check-evidence.ts checks every quote against the saved pages, the
+# tests run, and the result is committed to main, which deploys the site.
+# A move to "patched" is not committed: it is held in the issue, with its
+# quotes, for a person to confirm. Whatever Claude leaves for a person, or a
+# run that fails a check, also keeps the issue open.
+#
+# Claude has no shell, no network and no GitHub token: it can read files,
+# edit data/providers.yaml and write the evidence file. The commit and push
+# are done by the workflow after the checks.
+#
+# Setup: the "claude" environment holds the secrets CLAUDE_CODE_OAUTH_TOKEN
+# (claude setup-token) and VMAP_SOURCE_TOKEN (the Worker's SOURCE_TOKEN);
+# the repository variable VMAP_SOURCE_RELAY is https://<site>/api/source.
+# Pages that refuse GitHub's runners (403) are fetched through that relay.
+name: vendor-sources
+on:
+  schedule:
+    - cron: "17 9 * * *" # 18:17 in Japan, after the business day's notices
+  workflow_dispatch:
+permissions: {}
+concurrency:
+  group: vendor-sources
+  cancel-in-progress: false
+jobs:
+  update:
+    if: github.repository == 'kenryu42/openvmap'
+    runs-on: ubuntu-latest
+    environment: claude
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      issues: write
+    env:
+      DUMP: .vendor-check
+      VMAP_SOURCE_RELAY: ${{ vars.VMAP_SOURCE_RELAY }}
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.4.4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+      - run: bun install --frozen-lockfile
+
+      - name: Check vendor pages and save the flagged ones
+        env:
+          VMAP_SOURCE_TOKEN: ${{ secrets.VMAP_SOURCE_TOKEN }}
+        run: |
+          set -euo pipefail
+          bun run check-sources --dump "$DUMP"
+          # The pages as saved, before Claude runs: the evidence is checked against this copy.
+          cp -R "$DUMP" "$RUNNER_TEMP/saved"
+
+      - name: Update the table with Claude
+        id: claude
+        env:
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ "$(jq '[.items[] | select(.file)] | length' "$DUMP/manifest.json")" = 0 ]; then exit 0; fi
+          npm install --global @anthropic-ai/claude-code@2.1.310
+          test "$(claude --version)" = "2.1.310 (Claude Code)"
+          # Reads only the table, the saved pages and the skill (not the runner's
+          # environment, which holds the token); Edit(path) rules cover every
+          # file-writing tool. Default mode refuses anything else in a
+          # non-interactive run.
+          claude -p "/update-vendor-status $DUMP" \
+            --model claude-opus-5-5 --effort medium --permission-mode default \
+            --allowedTools "Read(data/**)" "Read($DUMP/**)" "Read(.claude/skills/**)" \
+              "Edit(data/providers.yaml)" "Edit($DUMP/evidence.json)" \
+            --disallowedTools "Bash" "WebFetch" "WebSearch"
+
+      - name: Check the evidence and the table, then commit and push
+        env:
+          VMAP_SOURCE_TOKEN: ${{ secrets.VMAP_SOURCE_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+        run: |
+          set -euo pipefail
+          # Before any repository code runs: Claude may have changed nothing but the table,
+          # and no secret may appear in what would be published.
+          for secret in "$CLAUDE_CODE_OAUTH_TOKEN" "$VMAP_SOURCE_TOKEN"; do
+            if [ -n "$secret" ] && git diff | grep -qF -- "$secret"; then echo "a secret appears in the table edit" >&2; exit 1; fi
+          done
+          changed=$(git status --porcelain --untracked-files=all)
+          if [ -n "$changed" ] && [ "$changed" != " M data/providers.yaml" ]; then echo "unexpected changes: $changed" >&2; exit 1; fi
+          if [ -f "$DUMP/evidence.json" ]; then cp "$DUMP/evidence.json" "$RUNNER_TEMP/saved/"; fi
+          # The pages and posts handled for every provider that cites them; the rest stay flagged.
+          urls=$(bun scripts/check-evidence.ts "$RUNNER_TEMP/saved")
+          if git diff --quiet && [ -z "$urls" ]; then exit 0; fi
+          bun run validate-providers
+          bun run test
+          if [ -n "$urls" ]; then bun run check-sources --accept-dumped "$RUNNER_TEMP/saved" "$urls"; fi
+          git add data/providers.yaml data/source-hashes.json data/news-seen.json
+          if git diff --cached --quiet; then exit 0; fi
+          # The body lists what was handled, from the evidence, not Claude's own words.
+          body=$(jq -r '.handled[] | "- \(.provider): \(.change), \(.url)"' "$RUNNER_TEMP/saved/evidence.json")
+          git -c user.name="vmap vendor update" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "chore(data): vendor update $(jq -r .date "$DUMP/manifest.json")" -m "$body"
+          git push "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git" HEAD:main
+
+      - name: Open, update or close the issue
+        if: always()
+        env:
+          VMAP_SOURCE_TOKEN: ${{ secrets.VMAP_SOURCE_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+          FAILED: ${{ job.status == 'failure' }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          # A failed run pushed nothing: report, and run code, only as it was on main.
+          if [ "$FAILED" = true ]; then git reset -q --hard "$GITHUB_SHA" && git clean -fdq; fi
+          REPORT=$RUNNER_TEMP/report.md
+          bun run check-sources --report "$REPORT"
+          num=$(gh issue list --label vendor-source --state open --json number --jq '.[0].number // empty')
+          # A held move to patched leaves its pages unaccepted, so they are in the report.
+          HELD=$RUNNER_TEMP/saved/held.md
+          if [ "$FAILED" != true ] && [ -s "$REPORT" ] && [ -f "$HELD" ]; then printf '\n\n' >> "$REPORT"; cat "$HELD" >> "$REPORT"; fi
+          # A failed update leaves its pages unaccepted, so they are in the report; say why.
+          if [ "$FAILED" = true ] && [ -s "$REPORT" ]; then printf '\n\nThe daily update failed its checks and committed nothing: %s\n' "$RUN_URL" >> "$REPORT"; fi
+          # No report: a page could not be read, so leave the issue as it is.
+          if [ ! -f "$REPORT" ]; then exit 0; fi
+          if [ ! -s "$REPORT" ]; then
+            if [ -n "$num" ]; then gh issue close "$num" --comment "Every vendor page matches its accepted version and no news post is waiting to be read."; fi
+            exit 0
+          fi
+          urls() { sed -n 's/^<!-- vmap-source-watch: \(.*\) -->$/\1/p' | tr ' ' '\n' | sed '/^$/d' | sort; }
+          if [ -z "$num" ]; then
+            gh label create vendor-source --color FBCA04 --description "A cited vendor page changed" --force
+            gh issue create --title "Vendor pages changed" --label vendor-source --body-file "$REPORT"
+            exit 0
+          fi
+          # Editing the body sends no notification; a comment does, so comment
+          # only when a page changes that the issue did not list before.
+          new=$(comm -13 <(gh issue view "$num" --json body --jq .body | urls) <(urls < "$REPORT"))
+          gh issue edit "$num" --body-file "$REPORT"
+          if [ -n "$new" ]; then
+            gh issue comment "$num" --body "$(printf 'Also changed now:\n\n'; while IFS= read -r u; do printf -- '- %s\n' "$u"; done <<< "$new")"
+          fi

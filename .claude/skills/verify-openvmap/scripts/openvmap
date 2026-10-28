@@ -1,0 +1,138 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../../.." && pwd)"
+tmp="${TMPDIR:-/tmp}"
+root="${OPENVMAP_VERIFY_ROOT:-${tmp%/}/openvmap-verify}"
+root="${root%/}"
+
+usage() {
+  cat <<EOF
+usage:
+  openvmap launch [--no-build]   build the site, start wrangler dev on a free port, wait until doctor passes
+  openvmap doctor <run-dir>      read-only health check of an instance this skill started
+  openvmap stop <run-dir>        stop that instance and delete its instance/ dir; evidence/ stays
+  openvmap api <run-dir> <json-body>
+                                 POST the body to this instance's /api/php the way its own page does
+                                 (Content-Type: application/json, same Origin); prints body then "HTTP <code>"
+  openvmap api-raw <run-dir> [curl args...]
+                                 curl this instance's /api/php with only your args, to probe the guards
+  openvmap list                  list runs under $root
+EOF
+  exit 2
+}
+
+free_port() {
+  bun -e 'const s = Bun.listen({ hostname: "127.0.0.1", port: 0, socket: { data() {} } }); console.log(s.port); s.stop(true);'
+}
+
+meta() { sed -n "s/^$2=//p" "$1/instance/meta"; }
+
+running_url() {
+  [[ -f "$1/instance/meta" ]] || { echo "FAIL no running instance at $1; launch one or check the path with: openvmap list" >&2; exit 1; }
+  meta "$1" url
+}
+
+doctor() {
+  local run="$1" fail=0
+  [[ -f "$run/instance/meta" ]] || { echo "FAIL no instance at $run (stopped, or not started by this skill)"; return 1; }
+  local pid port url commit
+  pid="$(meta "$run" pid)"; port="$(meta "$run" port)"; url="$(meta "$run" url)"; commit="$(meta "$run" commit)"
+  if kill -0 "$pid" 2>/dev/null; then echo "ok   process group $pid is alive"; else echo "FAIL process $pid is gone; see $run/instance/wrangler.log"; fail=1; fi
+  local owner
+  owner="$(lsof -nP -t -iTCP:"$port" -sTCP:LISTEN 2>/dev/null | head -1 || true)"
+  if [[ -n "$owner" ]] && [[ "$(ps -o pgid= -p "$owner" | tr -d ' ')" == "$pid" ]]; then
+    echo "ok   port $port is owned by this run (pid $owner)"
+  else
+    echo "FAIL port $port is not owned by process group $pid (owner: ${owner:-none})"; fail=1
+  fi
+  if curl -fsS "$url/" | grep -q '<title>OpenVMap'; then echo "ok   GET / serves the OpenVMap page"; else echo "FAIL GET $url/ does not serve the OpenVMap page"; fail=1; fi
+  local guard
+  guard="$(curl -sS -X POST -H 'Content-Type: application/json' -H 'Origin: https://elsewhere.invalid' --data '{"domain":"example.com"}' "$url/api/php" || true)"
+  if [[ "$guard" == '{"error":"origin"}' ]]; then echo "ok   /api/php answers from the Worker (foreign Origin refused)"; else echo "FAIL /api/php did not refuse a foreign Origin: $guard"; fail=1; fi
+  local head
+  head="$(git -C "$repo" rev-parse --short HEAD)"
+  if [[ "$head" == "$commit" ]]; then echo "ok   built from HEAD $commit"; else echo "WARN built from $commit but HEAD is now $head; relaunch to verify HEAD"; fi
+  if [[ "$(meta "$run" dirty)" == "yes" ]]; then echo "WARN the working tree had uncommitted changes when built"; fi
+  echo "url  $url"
+  echo "evidence $run/evidence"
+  return "$fail"
+}
+
+launch() {
+  local build=1
+  [[ "${1:-}" == "--no-build" ]] && build=0
+  grep -q '^SALT=.' "$repo/.dev.vars" 2>/dev/null || { echo "FAIL $repo/.dev.vars has no SALT=<any string>; the Worker answers 500 without it" >&2; exit 1; }
+  local id run port inspector
+  id="$(date +%Y%m%d-%H%M%S)-$$"
+  run="$root/$id"
+  mkdir -p "$run/instance" "$run/evidence"
+  if [[ "$build" == 1 ]]; then
+    echo "building (next build) -> $run/instance/build.log" >&2
+    (cd "$repo" && bun run build) >"$run/instance/build.log" 2>&1 || { echo "FAIL build; see $run/instance/build.log" >&2; exit 1; }
+  fi
+  [[ -f "$repo/out/index.html" ]] || { echo "FAIL $repo/out has no index.html; launch without --no-build" >&2; exit 1; }
+  cp -R "$repo/out" "$run/instance/assets"
+  bun -e 'console.log(require("node:tls").rootCertificates.join("\n"))' >"$run/instance/roots.pem"
+  port="$(free_port)"; inspector="$(free_port)"
+  local dirty=no
+  [[ -n "$(git -C "$repo" status --porcelain -- . ':!.claude/skills/verify-openvmap')" ]] && dirty=yes
+  set -m
+  (cd "$repo" && SSL_CERT_FILE="$run/instance/roots.pem" WRANGLER_SEND_METRICS=false exec bunx wrangler dev \
+    --ip 127.0.0.1 --port "$port" --inspector-port "$inspector" \
+    --assets "$run/instance/assets" --persist-to "$run/instance/state" \
+    --show-interactive-dev-session=false) >"$run/instance/wrangler.log" 2>&1 </dev/null &
+  local pid=$!
+  set +m
+  cat >"$run/instance/meta" <<EOF
+pid=$pid
+port=$port
+url=http://127.0.0.1:$port
+commit=$(git -C "$repo" rev-parse --short HEAD)
+dirty=$dirty
+EOF
+  for _ in $(seq 1 60); do
+    if grep -q 'Ready on' "$run/instance/wrangler.log" 2>/dev/null && doctor "$run" >/dev/null 2>&1; then
+      doctor "$run"
+      echo "RUN_DIR=$run"
+      return 0
+    fi
+    kill -0 "$pid" 2>/dev/null || break
+    sleep 1
+  done
+  echo "FAIL not ready; see $run/instance/wrangler.log" >&2
+  doctor "$run" >&2 || true
+  echo "RUN_DIR=$run" >&2
+  exit 1
+}
+
+stop() {
+  local run="$1"
+  [[ -f "$run/instance/meta" ]] || { echo "nothing to stop at $run"; return 0; }
+  local pid port
+  pid="$(meta "$run" pid)"; port="$(meta "$run" port)"
+  kill -TERM -- "-$pid" 2>/dev/null || true
+  for _ in $(seq 1 20); do kill -0 -- "-$pid" 2>/dev/null || break; sleep 0.5; done
+  kill -KILL -- "-$pid" 2>/dev/null || true
+  if lsof -nP -t -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then echo "FAIL port $port still listening after stop" >&2; return 1; fi
+  rm -rf "$run/instance"
+  echo "stopped; evidence kept at $run/evidence"
+}
+
+case "${1:-}" in
+  launch) shift; launch "$@" ;;
+  doctor) [[ $# -eq 2 ]] || usage; doctor "${2%/}" ;;
+  stop) [[ $# -eq 2 ]] || usage; stop "${2%/}" ;;
+  api)
+    [[ $# -eq 3 ]] || usage
+    url="$(running_url "${2%/}")"
+    curl -sS -w '\nHTTP %{http_code}\n' -X POST -H 'Content-Type: application/json' -H "Origin: $url" --data "$3" "$url/api/php"
+    ;;
+  api-raw)
+    [[ $# -ge 2 ]] || usage
+    url="$(running_url "${2%/}")"; shift 2
+    curl -sS -w '\nHTTP %{http_code}\n' "$@" "$url/api/php"
+    ;;
+  list) for r in "$root"/*/; do [[ -d "$r" ]] || continue; printf '%s %s\n' "$([[ -d "$r/instance" ]] && echo running || echo stopped)" "${r%/}"; done ;;
+  *) usage ;;
+esac

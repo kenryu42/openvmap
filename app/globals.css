@@ -1,0 +1,387 @@
+@import "tailwindcss";
+
+/* A public notice: white paper, near black ink, one navy for what you can act on.
+   Red, amber and green appear only in check results. Light only, like the
+   official notices it sits beside. */
+:root {
+  --paper: #f6f8fb;
+  --surface: #ffffff;
+  --sunken: #edf1f6;
+  --ink: #111827;
+  --muted: #4b5563;
+  --faint: #8a94a3;
+  --rule: #dde3ea;
+  --rule-strong: #c2cbd6;
+  --accent: #1f3a8a;
+  --accent-ink: #ffffff;
+  --accent-soft: #e3e9f8;
+  --ok: #1b7448;
+  --ok-soft: #d8ecdf;
+  --warn: #865400;
+  --warn-soft: #f4e6c7;
+  --bad: #b42318;
+  --bad-soft: #fde4e1;
+  --info: #2f5bd3;
+  --info-soft: #e0e8fb;
+  --idle: #5b6472;
+  --idle-soft: #e6eaf0;
+  --contour: rgb(17 24 39 / 0.07);
+  /* A block set apart from the page. */
+  --feature: #13254f;
+  --feature-ink: #f6f8fb;
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-accent-soft: var(--accent-soft);
+  --color-feature: var(--feature);
+  --color-feature-ink: var(--feature-ink);
+  --font-sans: var(--font-geist), var(--font-noto-jp), "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic UI", Meiryo, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Mass and spring: the landing page and navigation move on this curve. */
+  --ease-fluid: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* In the base layer, so utilities on an element still win. */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "palt" 0;
+    line-height: 1.8;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-ink);
+  }
+
+  /* Japanese headings set with proportional widths, the way print does. */
+  h1,
+  h2,
+  h3,
+  .display {
+    font-feature-settings: "palt" 1;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+    /* Break Japanese between phrases, not inside words. */
+    word-break: auto-phrase;
+  }
+
+  p,
+  li {
+    text-wrap: pretty;
+    /* Japanese: wrap between phrases, so a line never ends on a fragment of a word. */
+    word-break: auto-phrase;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+}
+
+/* Links: an underline that thickens toward the accent on hover. */
+.link {
+  color: inherit;
+  text-decoration-line: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+  transition:
+    text-decoration-color 0.2s,
+    text-decoration-thickness 0.2s,
+    color 0.2s;
+}
+.link:hover {
+  color: var(--accent);
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+}
+
+.grain {
+  background-image: radial-gradient(var(--contour) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+@keyframes draw {
+  from {
+    stroke-dashoffset: var(--len, 400);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes pulse-ring {
+  0% {
+    transform: scale(0.8);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+}
+@keyframes travel {
+  from {
+    offset-distance: 0%;
+  }
+  to {
+    offset-distance: 100%;
+  }
+}
+@keyframes sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+.rise {
+  animation: rise 0.9s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+.draw {
+  stroke-dasharray: var(--len, 400);
+  animation: draw 1.4s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 120ms + 300ms);
+}
+.pop {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop 0.7s var(--ease-out-expo) both;
+  animation-delay: calc(var(--i, 0) * 120ms + 700ms);
+}
+.pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  animation: pulse-ring 1.8s var(--ease-out-expo) infinite;
+}
+.halo {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse-ring 3.2s var(--ease-out-expo) infinite;
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--sunken) 0%, var(--rule) 50%, var(--sunken) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Sections fade up as they scroll in, where the browser supports it. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: rise linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 40%;
+  }
+}
+
+/* The hero heading: ink fading left to right, the one gradient on the page, on text only. */
+.hero-title {
+  background: linear-gradient(90deg, #000000, #666666);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+/* The menu overlay on phones: heavy glass over the page. */
+.glass-overlay {
+  background: rgb(255 255 255 / 0.8);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Long-form text: the guide (Markdown rendered at build time) and About. */
+.prose {
+  max-width: 44rem;
+  line-height: 1.95;
+}
+.prose h1 {
+  margin-bottom: 1.5rem;
+  font-size: clamp(2rem, 4vw + 1rem, 3.25rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+.prose h2 {
+  position: relative;
+  scroll-margin-top: 6rem;
+  margin: 3.5rem 0 1rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--rule);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+.prose h2::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--accent);
+}
+.prose h3 {
+  margin: 2rem 0 0.5rem;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+.prose p {
+  margin: 0.9rem 0;
+}
+.prose ul,
+.prose ol {
+  margin: 0.9rem 0;
+  padding-left: 1.4rem;
+}
+.prose ul {
+  list-style: none;
+  padding-left: 1.1rem;
+}
+.prose ul > li {
+  position: relative;
+}
+.prose ul > li::before {
+  content: "";
+  position: absolute;
+  left: -1.05rem;
+  top: 0.82em;
+  width: 0.4rem;
+  height: 1px;
+  background: var(--accent);
+}
+.prose ol {
+  list-style: decimal;
+}
+.prose ol > li::marker {
+  color: var(--accent);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+.prose li {
+  margin: 0.35rem 0;
+}
+.prose blockquote {
+  margin: 1.5rem 0;
+  padding: 0.75rem 1.25rem;
+  border: 1px solid var(--rule);
+  border-radius: 0.75rem;
+  background: var(--surface);
+  color: var(--muted);
+}
+.prose a {
+  color: inherit;
+  overflow-wrap: anywhere;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--accent) 55%, transparent);
+  text-underline-offset: 0.22em;
+  transition: color 0.2s;
+}
+.prose a:hover {
+  color: var(--accent);
+}
+.prose table {
+  display: block;
+  overflow-x: auto;
+  margin: 1.5rem 0;
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+.prose th,
+.prose td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid var(--rule);
+  text-align: left;
+  vertical-align: top;
+}
+.prose th {
+  border-bottom-color: var(--rule-strong);
+  color: var(--muted);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.prose code {
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+  background: var(--sunken);
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+.prose strong {
+  font-weight: 700;
+}
+.prose hr {
+  margin: 3rem 0;
+  border-color: var(--rule);
+}

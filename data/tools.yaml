@@ -1,0 +1,356 @@
+# Open source security tools for small teams, one job at a time.
+#
+# License: CC BY 4.0 (see data/LICENSE). The code is MIT (see LICENSE).
+#
+# Rules for contributors (checked by `bun run validate-tools`):
+#   - Each job lists the pick first, then at most two alternatives.
+#   - Only tools under an OSI-approved license. "cost: open-core" when the
+#     project sells a paid tier or the free part needs an account.
+#   - license is an SPDX id read from the repository. Where GitHub reports
+#     one, it must match, so the daily tool-activity run fails on a relicense.
+#   - "try" is a command copied from the project's own README or docs.
+#   - by_author marks a tool written by the author of this site.
+#   - incidents records a compromise of the project itself (a malicious
+#     release, hijacked tags), with the date it began and the project's own
+#     advisory as the source. Keep the tool listed when it has recovered;
+#     the note tells readers which versions to avoid.
+#
+# Runs: cli (run it on your machine) | ci (runs in your CI or as a bot) |
+#       service (a server you keep running) | rules (rules for another tool)
+
+jobs:
+  - id: backups
+    title: "Keep backups you can restore after ransomware"
+    title_ja: "ランサムウェアの後でも戻せるバックアップを取る"
+    why: "Ransomware encrypts the backups it can reach. Keep an encrypted copy somewhere the server cannot delete, and test a restore."
+    why_ja: "ランサムウェアは、手の届くバックアップも暗号化します。サーバーから消せない場所に暗号化した複製を置き、実際に戻せるか試しておきます。"
+    tools:
+      - name: restic
+        repo: restic/restic
+        license: BSD-2-Clause
+        cost: free
+        runs: cli
+        what: "Encrypted, deduplicated backups to a local disk, SFTP or S3-compatible storage. One binary."
+        what_ja: "ローカルディスク・SFTP・S3 互換ストレージへの、暗号化と重複排除付きのバックアップ。単一のバイナリで動きます。"
+        try: "restic init --repo /srv/backup"
+      - name: BorgBackup
+        repo: borgbackup/borg
+        license: BSD-3-Clause
+        cost: free
+        runs: cli
+        what: "Encrypted, deduplicated backups over SSH, with append-only repositories a compromised client cannot erase."
+        what_ja: "SSH 経由の暗号化・重複排除バックアップ。追記のみのリポジトリにすれば、乗っ取られたサーバーからは消せません。"
+
+  - id: servers
+    title: "Find unpatched packages on your servers"
+    title_ja: "サーバーの未更新パッケージを見つける"
+    why: "Outside scans cannot see backported fixes. A package inventory from inside the server can, which is how you confirm a PHP or OpenSSL fix landed."
+    why_ja: "外部からのスキャンでは、バックポートされた修正は見えません。サーバー内部のパッケージ一覧なら分かります。PHP や OpenSSL の修正が入ったかを確かめる方法です。"
+    tools:
+      - name: Vuls
+        repo: future-architect/vuls
+        license: GPL-3.0
+        cost: free
+        runs: cli
+        what: "Agentless vulnerability scanner for Linux and FreeBSD that reads the installed packages over SSH and matches them to advisories."
+        what_ja: "Linux・FreeBSD 向けのエージェント不要の脆弱性スキャナー。SSH でインストール済みパッケージを読み、公開されている脆弱性情報と照合します。"
+      - name: Lynis
+        repo: CISOfy/lynis
+        license: GPL-3.0
+        cost: open-core
+        runs: cli
+        what: "Audits a Linux or macOS host's configuration and lists concrete hardening steps. Runs from a git checkout with nothing to install."
+        what_ja: "Linux・macOS のサーバーの設定を監査し、具体的な堅牢化の手順を挙げます。git で取得したまま、インストールなしで動きます。"
+        try: "cd lynis && ./lynis audit system"
+
+  - id: dependencies
+    title: "Find known vulnerabilities in your dependencies"
+    title_ja: "依存ライブラリの既知の脆弱性を見つける"
+    why: "Most of the code you ship is someone else's. Check lockfiles against public advisories on every change."
+    why_ja: "出荷するコードの大半は他人のコードです。変更のたびに、ロックファイルを公開された脆弱性情報と照合します。"
+    tools:
+      - name: OSV-Scanner
+        repo: google/osv-scanner
+        license: Apache-2.0
+        cost: free
+        runs: cli
+        what: "Reads lockfiles for npm, Composer, PyPI, Go, Maven and more, and matches them against the OSV.dev database."
+        what_ja: "npm・Composer・PyPI・Go・Maven などのロックファイルを読み、OSV.dev のデータベースと照合します。"
+        try: "osv-scanner scan source -r ."
+
+  - id: containers
+    title: "Scan container images before you deploy them"
+    title_ja: "デプロイ前にコンテナイメージを検査する"
+    why: "A base image you pulled a year ago carries a year of unpatched packages."
+    why_ja: "1年前に取得したベースイメージには、1年分の未修正パッケージが残っています。"
+    tools:
+      - name: Grype
+        repo: anchore/grype
+        license: Apache-2.0
+        cost: free
+        runs: cli
+        what: "Scans a container image or a project directory for vulnerable packages."
+        what_ja: "コンテナイメージやプロジェクトのディレクトリから、脆弱なパッケージを見つけます。"
+        try: "grype alpine:latest"
+      - name: Trivy
+        repo: aquasecurity/trivy
+        license: Apache-2.0
+        cost: free
+        runs: cli
+        what: "Finds vulnerable packages, leaked secrets and misconfigurations in images, file systems and IaC files."
+        what_ja: "イメージ・ファイルシステム・IaC ファイルから、脆弱なパッケージ、漏れた秘密情報、設定ミスを見つけます。"
+        try: "trivy image python:3.4-alpine"
+        incidents:
+          - date: "2026-03-19"
+            what: "Attackers with stolen project credentials published a malicious Trivy v0.69.4, malicious Docker Hub images v0.69.5 and v0.69.6, and rewrote the trivy-action and setup-trivy tags to steal CI secrets (CVE-2026-33634). v0.69.3 and earlier, trivy-action 0.35.0 and the Homebrew formula were not affected. If a pipeline ran an affected version, rotate the secrets it could read, and pin GitHub Actions to commit SHAs."
+            what_ja: "盗まれた認証情報を使った攻撃者が、悪意のある Trivy v0.69.4 と Docker Hub のイメージ v0.69.5・v0.69.6 を公開し、trivy-action と setup-trivy のタグを CI の秘密情報を盗むコードに書き換えました（CVE-2026-33634）。v0.69.3 以前、trivy-action 0.35.0、Homebrew の公式 formula は影響を受けていません。該当するバージョンを動かしたパイプラインがあれば、そこから読めた秘密情報を無効化し、GitHub Actions はコミットの SHA で固定してください。"
+            source: https://github.com/aquasecurity/trivy/security/advisories/GHSA-69fq-xp46-6x23
+
+  - id: updates
+    title: "Keep dependencies up to date without doing it by hand"
+    title_ja: "依存ライブラリの更新を手作業なしで続ける"
+    why: "A fix only helps once you have upgraded to it. A bot that opens the upgrade pull requests keeps the gap short."
+    why_ja: "修正は、取り込んで初めて効きます。更新のプルリクエストを自動で作るボットがあれば、その遅れを短くできます。"
+    tools:
+      - name: Renovate
+        repo: renovatebot/renovate
+        license: AGPL-3.0
+        cost: free
+        runs: ci
+        what: "Opens pull requests that update dependencies, grouped and scheduled the way you configure. Works with GitHub, GitLab, Bitbucket and others."
+        what_ja: "依存ライブラリを更新するプルリクエストを、設定どおりにまとめて、決めた時間に作ります。GitHub・GitLab・Bitbucket などに対応します。"
+
+  - id: secrets
+    title: "Find passwords and API keys committed to git"
+    title_ja: "git に入ってしまったパスワードや API キーを見つける"
+    why: "A key deleted in a later commit is still in the history. Scan the whole history once, then every commit."
+    why_ja: "後のコミットで消したキーも、履歴には残っています。一度は履歴全体を調べ、その後はコミットごとに調べます。"
+    tools:
+      - name: Gitleaks
+        repo: gitleaks/gitleaks
+        license: MIT
+        cost: free
+        runs: cli
+        what: "Scans git history, directories or stdin for secrets. Runs as a pre-commit hook or in CI."
+        what_ja: "git の履歴・ディレクトリ・標準入力から秘密情報を探します。pre-commit フックや CI でも動きます。"
+        try: "gitleaks git -v"
+      - name: TruffleHog
+        repo: trufflesecurity/trufflehog
+        license: AGPL-3.0
+        cost: open-core
+        runs: cli
+        what: "Finds secrets and checks whether each one still works, so you rotate the live ones first."
+        what_ja: "秘密情報を見つけ、それがまだ有効かを確かめます。有効なものから先に無効化できます。"
+        try: "trufflehog git file://. --results=verified"
+
+  - id: code
+    title: "Catch insecure patterns in your own code"
+    title_ja: "自社のコードの危険な書き方を見つける"
+    why: "SQL built from strings, unescaped output and shell calls with user input are cheap to catch in review and expensive in production."
+    why_ja: "文字列を連結した SQL、エスケープしない出力、利用者の入力を渡すシェル呼び出しは、レビューで見つければ安く、本番で見つかると高くつきます。"
+    tools:
+      - name: Semgrep Community Edition
+        repo: semgrep/semgrep
+        license: LGPL-2.1
+        cost: open-core
+        runs: cli
+        what: "Pattern-based static analysis for over 30 languages. The free engine checks one file at a time; cross-file analysis is in the paid platform."
+        what_ja: "30以上の言語に対応する、パターンによる静的解析。無料のエンジンはファイル単位の解析で、ファイルをまたぐ解析は有料のプラットフォームにあります。"
+      - name: Opengrep
+        repo: opengrep/opengrep
+        license: LGPL-2.1
+        cost: free
+        runs: cli
+        what: "A community fork of Semgrep's engine, kept fully open source. Bring your own rules."
+        what_ja: "Semgrep のエンジンをコミュニティが引き継いだ、完全なオープンソースのフォーク。ルールは自分で用意します。"
+        try: "opengrep scan -f rules code"
+
+  - id: ci
+    title: "Check your GitHub Actions workflows"
+    title_ja: "GitHub Actions のワークフローを点検する"
+    why: "A workflow that runs untrusted input or an unpinned action can hand your deploy keys to anyone who opens a pull request."
+    why_ja: "信頼できない入力を実行したり、バージョンを固定しないアクションを使ったりするワークフローは、プルリクエストを開いた誰かにデプロイ用の鍵を渡しかねません。"
+    tools:
+      - name: zizmor
+        repo: zizmorcore/zizmor
+        license: MIT
+        cost: free
+        runs: cli
+        what: "Static analysis for GitHub Actions: template injection, unpinned actions, credential leaks and over-broad permissions."
+        what_ja: "GitHub Actions の静的解析。テンプレートインジェクション、固定されていないアクション、認証情報の漏えい、広すぎる権限を見つけます。"
+        try: "zizmor .github/workflows/"
+      - name: OpenSSF Scorecard
+        repo: ossf/scorecard
+        license: Apache-2.0
+        cost: free
+        runs: ci
+        what: "Scores a repository's security practices, such as branch protection, pinned dependencies and signed releases. Also useful for judging a dependency."
+        what_ja: "ブランチ保護、依存の固定、署名付きリリースなど、リポジトリのセキュリティの取り組みを採点します。依存先を選ぶときの判断材料にもなります。"
+        try: "scorecard --repo=github.com/ossf/scorecard"
+
+  - id: webapp
+    title: "Test your own web app for common holes"
+    title_ja: "自社の Web アプリによくある穴がないか試す"
+    why: "Run it against your own staging site, never someone else's. A baseline scan only looks; an active scan sends attacks."
+    why_ja: "自社の検証環境にだけ使い、他人のサイトには使わないでください。ベースラインスキャンは観察だけ、アクティブスキャンは攻撃を送ります。"
+    tools:
+      - name: ZAP
+        repo: zaproxy/zaproxy
+        license: Apache-2.0
+        cost: free
+        runs: cli
+        what: "A web app scanner and intercepting proxy. The baseline scan reports missing headers, cookie flags and similar issues without attacking."
+        what_ja: "Web アプリのスキャナー兼プロキシ。ベースラインスキャンは、攻撃をせずに、足りないヘッダーや Cookie の属性などを報告します。"
+        try: "docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t https://staging.example.com"
+      - name: Nuclei
+        repo: projectdiscovery/nuclei
+        license: MIT
+        cost: open-core
+        runs: cli
+        what: "Template-based scanner with community templates for known CVEs, exposed panels and misconfigurations."
+        what_ja: "テンプレートで動くスキャナー。既知の CVE、公開されたままの管理画面、設定ミスのテンプレートがコミュニティから提供されています。"
+
+  - id: tls
+    title: "Check your TLS setup"
+    title_ja: "TLS の設定を確認する"
+    why: "Old protocol versions, weak ciphers and an incomplete certificate chain all show up from outside."
+    why_ja: "古いプロトコル、弱い暗号、不完全な証明書チェーンは、どれも外から見えます。"
+    tools:
+      - name: testssl.sh
+        repo: testssl/testssl.sh
+        license: GPL-2.0
+        cost: free
+        runs: cli
+        what: "Checks a server's protocols, ciphers, certificate chain and known TLS flaws. A shell script with no dependencies beyond bash and openssl."
+        what_ja: "サーバーのプロトコル、暗号、証明書チェーン、既知の TLS の欠陥を調べます。bash と openssl だけで動くシェルスクリプトです。"
+        try: "docker run --rm -it ghcr.io/testssl/testssl.sh example.com"
+      - name: SSLyze
+        repo: nabla-c0d3/sslyze
+        license: AGPL-3.0
+        cost: free
+        runs: cli
+        what: "A fast TLS scanner that can fail a CI job when a server drifts from the Mozilla configuration you choose."
+        what_ja: "高速な TLS スキャナー。選んだ Mozilla の推奨設定からサーバーが外れたら、CI のジョブを失敗させられます。"
+
+  - id: monitoring
+    title: "Know when a site goes down or a certificate is about to expire"
+    title_ja: "サイトの停止や証明書の期限切れに気づく"
+    why: "An expired certificate takes a site down as surely as an attack, and it is announced weeks in advance."
+    why_ja: "証明書の期限切れは、攻撃と同じくらい確実にサイトを止めます。しかも数週間前から分かっています。"
+    tools:
+      - name: Uptime Kuma
+        repo: louislam/uptime-kuma
+        license: MIT
+        cost: free
+        runs: service
+        what: "A self-hosted status monitor for HTTP, TCP, DNS and more, with certificate expiry alerts to email, Slack and many other channels."
+        what_ja: "自分で動かす死活監視。HTTP・TCP・DNS などを監視し、証明書の期限切れもメールや Slack などに知らせます。"
+        try: "docker run -d --restart=always -p 3001:3001 -v uptime-kuma:/app/data --name uptime-kuma louislam/uptime-kuma:2"
+      - name: Gatus
+        repo: TwiN/gatus
+        license: Apache-2.0
+        cost: free
+        runs: service
+        what: "Health checks written as YAML conditions, including certificate expiry, with a status page."
+        what_ja: "証明書の期限を含む監視条件を YAML で書く死活監視。ステータスページも付きます。"
+
+  - id: mail
+    title: "Stop others sending mail as your domain"
+    title_ja: "自社のドメインをかたるメールを止める"
+    why: "Without SPF, DKIM and an enforced DMARC policy, anyone can send invoices that appear to come from you."
+    why_ja: "SPF・DKIM と、強制するように設定した DMARC がなければ、誰でも自社の名前で請求書を送れてしまいます。"
+    tools:
+      - name: checkdmarc
+        repo: domainaware/checkdmarc
+        license: Apache-2.0
+        cost: free
+        runs: cli
+        what: "Validates a domain's SPF, DMARC, MX, MTA-STS and BIMI records and explains what is wrong."
+        what_ja: "ドメインの SPF・DMARC・MX・MTA-STS・BIMI のレコードを検査し、何が問題かを示します。"
+        try: "checkdmarc example.com"
+      - name: parsedmarc
+        repo: domainaware/parsedmarc
+        license: Apache-2.0
+        cost: free
+        runs: service
+        what: "Reads the DMARC reports mailbox providers send you, so you can see who sends as your domain before you enforce the policy."
+        what_ja: "メール事業者から届く DMARC レポートを読み取ります。ポリシーを強制する前に、誰が自社の名前で送っているかが分かります。"
+
+  - id: blocking
+    title: "Block brute-force logins and scanners"
+    title_ja: "総当たりのログインやスキャンを遮断する"
+    why: "Every public server sees password guessing within minutes of going online. Ban the sources automatically."
+    why_ja: "公開したサーバーには、数分でパスワードの推測が届きます。送信元を自動で遮断します。"
+    tools:
+      - name: CrowdSec
+        repo: crowdsecurity/crowdsec
+        license: MIT
+        cost: open-core
+        runs: service
+        what: "Reads your logs, detects attacks and blocks the sources at the firewall, web server or CDN, with an IP blocklist shared by its users."
+        what_ja: "ログから攻撃を検知し、ファイアウォール・Web サーバー・CDN で送信元を遮断します。利用者の間で共有される IP の遮断リストもあります。"
+      - name: Fail2ban
+        repo: fail2ban/fail2ban
+        license: GPL-2.0
+        cost: free
+        runs: service
+        what: "The long-standing log watcher that bans IP addresses after repeated failures, for SSH, mail and web logins."
+        what_ja: "失敗が続いた IP アドレスを遮断する、昔からあるログ監視。SSH・メール・Web のログインに使えます。"
+
+  - id: waf
+    title: "Put a web application firewall in front of a PHP site"
+    title_ja: "PHP のサイトの前に WAF を置く"
+    why: "A WAF does not fix a vulnerable PHP build, but it filters common attacks while the fix is scheduled."
+    why_ja: "WAF は脆弱な PHP を直しませんが、修正までの間、よくある攻撃をふるい落とします。"
+    tools:
+      - name: OWASP CRS
+        repo: coreruleset/coreruleset
+        license: Apache-2.0
+        cost: free
+        runs: rules
+        what: "The standard open rule set for ModSecurity, Coraza and compatible firewalls, covering the OWASP Top Ten."
+        what_ja: "ModSecurity・Coraza などの WAF で使う標準的なオープンなルール集。OWASP Top 10 に対応します。"
+      - name: Coraza
+        repo: corazawaf/coraza
+        license: Apache-2.0
+        cost: free
+        runs: service
+        what: "A WAF engine compatible with ModSecurity rules, available as a Caddy, Envoy or HAProxy plugin."
+        what_ja: "ModSecurity のルールと互換の WAF エンジン。Caddy・Envoy・HAProxy のプラグインとして使えます。"
+
+  - id: passwords
+    title: "Share passwords within the team without a spreadsheet"
+    title_ja: "表計算ファイルを使わずにチームでパスワードを共有する"
+    why: "Shared logins end up in a spreadsheet or a chat thread. A team vault gives each person access to only what they need, and lets you revoke it."
+    why_ja: "共有のログイン情報は、表計算ファイルやチャットに流れがちです。チーム用の保管庫なら、必要なものだけを渡し、後から取り消せます。"
+    tools:
+      - name: Vaultwarden
+        repo: dani-garcia/vaultwarden
+        license: AGPL-3.0
+        cost: free
+        runs: service
+        what: "A lightweight, unofficial server compatible with the Bitwarden apps and browser extensions, including organizations and sharing."
+        what_ja: "Bitwarden のアプリやブラウザ拡張と互換の、軽量な非公式サーバー。組織と共有にも対応します。"
+      - name: Passbolt Community Edition
+        repo: passbolt/passbolt_api
+        license: AGPL-3.0
+        cost: open-core
+        runs: service
+        what: "A self-hosted team password manager built around sharing, with per-item permissions."
+        what_ja: "共有を中心に作られた、自分で動かすチーム向けパスワード管理。項目ごとに権限を設定できます。"
+
+  - id: agents
+    title: "Stop AI coding agents from running destructive commands"
+    title_ja: "AI コーディングエージェントに破壊的なコマンドを実行させない"
+    why: "An agent with a shell can run git reset --hard or rm -rf on the wrong directory, or read your .env file, in the time it takes to approve a prompt."
+    why_ja: "シェルを使えるエージェントは、確認を承認するわずかな間に git reset --hard や間違ったディレクトリへの rm -rf を実行したり、.env を読んだりできます。"
+    tools:
+      - name: CC Safety Net
+        repo: kenryu42/cc-safety-net
+        license: MIT
+        cost: free
+        runs: cli
+        what: "A hook that parses each command before an agent runs it and blocks destructive git and file system commands and reads of secrets. Supports Claude Code, Codex, Cursor and other coding CLIs."
+        what_ja: "エージェントが実行する前にコマンドを解析し、破壊的な git やファイル操作、秘密情報の読み取りを止めるフック。Claude Code・Codex・Cursor などのコーディング CLI に対応します。"
+        try: "npx -y cc-safety-net@latest install"
+        by_author: true
