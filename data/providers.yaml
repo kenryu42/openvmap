@@ -1348,12 +1348,12 @@ providers:
         status: "patched"
         confidence: official
         date: "2026-10-21"
-        summary: "公式ブログ（10月21日、22日12:00 UTC更新）：修正版の公開前に全サーバーへサーバー側の緩和ルールを入れ、提供中の全PHPバージョンで該当機能を無効化した。10月21日に修正版が公開されると「SiteGroundの全サーバーに適用した」とし、利用者の作業は不要としている。スタッフのコメント（10月22日・23日）では、Managed PHPか手動選択かにかかわらず、PHP 7.4を含むSite Toolsの全バージョンが保護されているとするが、7.4〜8.1については「サーバー側の緩和策」と書いており、コードの修正が入ったかどうかは書かれていない。"
-        summary_en: "Official blog (Oct 21, updated 12:00 UTC Oct 22): before the release SiteGround deployed server-level mitigation rules on all servers and disabled the affected functionality on all supported PHP versions; once PHP released the fixes on Oct 21 it 'applied them across all SiteGround servers' and says customers need do nothing. Staff comments (Oct 22-23) say every PHP version in Site Tools, including 7.4, is covered whether Managed PHP or manually selected, but describe 7.4-8.1 as covered by 'server-level security mitigations'; they do not say a code fix was applied to those."
-        customer_action: "今回の対策のための作業は不要とされる。PHP 8.1以前（7.4など）を手動で選んでいる場合は、開発元の修正がないため、Site ToolsでManaged PHPか8.2以降へ切り替えることを検討。"
-        customer_action_en: "SiteGround says no action is needed. Sites manually pinned to PHP 8.1 or older (e.g. 7.4) have no upstream fix, so consider switching to Managed PHP or 8.2+ in Site Tools."
+        summary: "公式ブログ（10月21日、22日12:00 UTC更新）：修正版の公開前に全サーバーへサーバー側の緩和ルールを入れ、提供中の全PHPバージョンで該当機能を無効化した。10月21日に修正版が公開されると「SiteGroundの全サーバーに適用した」とし、利用者の作業は不要としている。スタッフのコメント（10月22日・23日・26日）では、Managed PHPか手動選択かにかかわらず、PHP 7.4を含むSite Toolsの全バージョンが保護されているとし、10月26日にはPHP Managerで7.3.34を選んでいるサイトも保護されているとしたうえで、PHP 7.4以降への更新を勧めている。ただし7.3〜8.1については「サーバー側の緩和策」と書いており、コードの修正が入ったかどうかは書かれていない。"
+        summary_en: "Official blog (Oct 21, updated 12:00 UTC Oct 22): before the release SiteGround deployed server-level mitigation rules on all servers and disabled the affected functionality on all supported PHP versions; once PHP released the fixes on Oct 21 it 'applied them across all SiteGround servers' and says customers need do nothing. Staff comments (Oct 22-23 and 26) say every PHP version in Site Tools, including 7.4, is covered whether Managed PHP or manually selected, and on Oct 26 that a site set to PHP 7.3.34 in the PHP Manager is also protected, while recommending a move to 7.4 or newer; they describe 7.3-8.1 as covered by 'server-level security mitigations' and do not say a code fix was applied to those."
+        customer_action: "今回の対策のための作業は不要とされる。PHP 8.1以前（7.3、7.4など）を手動で選んでいる場合は、開発元の修正がないため、Site ToolsでManaged PHPか8.2以降へ切り替えることを検討。"
+        customer_action_en: "SiteGround says no action is needed. Sites manually pinned to PHP 8.1 or older (e.g. 7.3 or 7.4) have no upstream fix, so consider switching to Managed PHP or 8.2+ in Site Tools."
         source: https://www.siteground.com/blog/critical-php-vulnerabilities-october-2026
-        verified_at: "2026-10-26"
+        verified_at: "2026-10-29"
 
   # ---- CDN (hides the origin)
 
