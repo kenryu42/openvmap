@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "vmap",
+  "name": "openvmap",
   "main": "worker/index.ts",
   "compatibility_date": "2026-10-09",
   "assets": {
