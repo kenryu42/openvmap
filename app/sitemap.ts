@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { base, homeHref, type Lang } from "@/lib/lang";
+import { pageHref, type Lang } from "@/lib/lang";
 import { siteUrl } from "@/lib/meta";
 import { table } from "@/lib/table";
 
@@ -8,7 +8,7 @@ export const dynamic = "force-static";
 const langs: Lang[] = ["en", "ja"];
 
 function url(lang: Lang, path: string): string {
-  return siteUrl + (path === "" ? homeHref(lang) : base(lang) + path);
+  return siteUrl + pageHref(lang, path);
 }
 
 export default function sitemap(): MetadataRoute.Sitemap {

@@ -6,7 +6,7 @@ import { Arrow } from "./check";
 import { StaleNotice } from "./client";
 import { linkClass, Site, statusColor, StatusBadge } from "./site";
 import { incidentOf, otherIncidents, type Incident, type Provider, type Status } from "@/lib/provider";
-import { base, messages, otherLang, type Lang } from "@/lib/lang";
+import { base, messages, otherLang, pageAlternates, type Lang } from "@/lib/lang";
 import { pick } from "@/lib/report";
 import { dohService } from "@/lib/doh";
 import { repoUrl } from "@/lib/meta";
@@ -144,7 +144,7 @@ export function providerParams(): { id: string }[] {
 
 export async function providerMetadata(params: Promise<{ id: string }>, lang: Lang): Promise<Metadata> {
   const pr = table.get((await params).id);
-  return pr ? { title: providerTitle(pr, lang) } : {};
+  return pr ? { title: providerTitle(pr, lang), alternates: pageAlternates(lang, `/providers/${pr.id}`) } : {};
 }
 
 export async function ProviderRoute({ params, lang }: { params: Promise<{ id: string }>; lang: Lang }) {

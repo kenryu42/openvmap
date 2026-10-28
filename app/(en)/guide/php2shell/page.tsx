@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { GuidePage } from "@/app/_components/guide";
+import { pageAlternates } from "@/lib/lang";
 
 export const metadata: Metadata = {
+  alternates: pageAlternates("en", "/guide/php2shell"),
   title: "php2shell: a guide for small businesses",
   description: "What php2shell (CVE-2026-109618 / CVE-2026-109619) means for your website, who has to patch it, and what to ask your web agency or host.",
 };

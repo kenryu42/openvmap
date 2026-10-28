@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import { en } from "./messages/en";
 import { ja, type Messages } from "./messages/ja";
 
@@ -9,6 +10,14 @@ export function base(lang: Lang): string {
 
 export function homeHref(lang: Lang): string {
   return base(lang) || "/";
+}
+
+export function pageHref(lang: Lang, path: string): string {
+  return path === "" ? homeHref(lang) : base(lang) + path;
+}
+
+export function pageAlternates(lang: Lang, path: string): Metadata["alternates"] {
+  return { canonical: pageHref(lang, path), languages: { en: pageHref("en", path), ja: pageHref("ja", path), "x-default": pageHref("en", path) } };
 }
 
 export function otherLang(lang: Lang): Lang {

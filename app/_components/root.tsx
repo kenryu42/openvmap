@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
 import { messages, type Lang } from "@/lib/lang";
+import { siteUrl } from "@/lib/meta";
 import { table } from "@/lib/table";
 import "../globals.css";
 
@@ -27,10 +28,11 @@ const titles = {
 export function rootMetadata(lang: Lang): Metadata {
   const { title, description, locale } = titles[lang];
   return {
+    metadataBase: new URL(siteUrl),
     title: { default: title, template: "%s | OpenVMap" },
     description,
     openGraph: { title, description, siteName: "OpenVMap", locale, type: "website" },
-    twitter: { card: "summary", title, description },
+    twitter: { card: "summary_large_image", title, description },
   };
 }
 
