@@ -40,7 +40,7 @@
 
 incident: php2shell
 incident_cves: [CVE-2026-109618, CVE-2026-109619]
-updated_at: "2026-10-29"
+updated_at: "2026-10-30"
 
 providers:
 
@@ -396,13 +396,13 @@ providers:
       php2shell:
         status: "in_progress"
         confidence: official
-        date: "2026-10-28"
-        summary: "公式発表（10月28日18時30分更新）：SV-Basic、ビジネス スタンダード、CHM-11Z〜13Z、CHM-21Z〜23ZではPHP 8.2.35・8.3.36・8.4.27の修正版を10月22日に適用済み。ACE01（2015年9月〜2019年9月契約）には10月27日にパッチ適用版の7.4.34と8.0.30を適用済み。SV-Basic・ビジネス スタンダード（2022年9月〜2025年12月契約）・CHM-11Z〜23Zの7.4.xは10月29日に適用予定。それ以外の旧バージョンや旧プラン（G、X、Z、ZZ、2015年9月以前契約のACE01、Pro、V、MG、CHM、CHM-S、CHM-Zなど）は今回のパッチの提供対象外で、php.iniでの緩和策を案内。10月28日の追記で、ZZ、ACE01（2011年10月〜2015年9月契約）、CHM01〜03、CHM-01S〜03S、CHM-01Z〜03Z、MG01〜05の全PHPバージョンについて、CPI側でphp.iniのデフォルト値を変更する緩和策を実施したとしたが、利用者が設置したphp.iniがあればその設定が優先される。G、X、Z、Pro、Vシリーズなどは対象に含まれていない。再開したコントロールパネルのPHPバージョン表示は最新ではなく、後日更新予定。利用者のサーバー自体は停止しておらず、不正アクセスは確認されていない。"
-        summary_en: "Official (updated Oct 28 18:30): SV-Basic, Business Standard and CHM-11Z to 23Z got the fixed releases 8.2.35, 8.3.36 and 8.4.27 on Oct 22. ACE01 (contracts Sep 2015 to Sep 2019) got patched 7.4.34 and 8.0.30 on Oct 27. A patched 7.4.x is scheduled for Oct 29 on SV-Basic, Business Standard (contracts Sep 2022 to Dec 2025) and CHM-11Z to 23Z. Other old versions and legacy plans (G, X, Z, ZZ, ACE01 before Sep 2015, Pro, V, MG, CHM, CHM-S, CHM-Z etc.) get no patch; customers are told to apply php.ini mitigations. An Oct 28 addendum says CPI itself changed the php.ini defaults as a mitigation for every PHP version on ZZ, ACE01 (contracts Oct 2011 to Sep 2015), CHM01-03, CHM-01S-03S, CHM-01Z-03Z and MG01-05, but a php.ini placed by the customer takes precedence; the G, X, Z, Pro and V series are not listed. The resumed control panel still shows the old version number and will be updated later. Customer servers were not stopped; no unauthorized access confirmed."
-        customer_action: "コントロールパネルで利用中のプランとPHPバージョンを確認。7.4・8.0を使っていてパッチ適用版の提供予定があるプランは、提供後に切替える（メジャー・マイナーバージョンが変わる場合は.htaccessの変更が必要）。それまでの間や提供対象外のバージョンでは、修正済みバージョン（8.2.35／8.3.36／8.4.27）へ切替えるか、公式案内のphp.ini設定（session.upload_progress.enabled = Off など）を適用。CPIがphp.iniのデフォルト値を変更したプラン（ZZ、旧ACE01、CHM、CHM-S、CHM-Z、MG）でも、自分でphp.iniを設置している場合はその内容が優先されるため、設定値を確認する。php.iniの変更はCPIのサポート対象外。パネルの表示が古くても修正版は適用済みの場合がある。"
-        customer_action_en: "Check your plan and PHP version. If you run 7.4 or 8.0 on a plan with a patched build scheduled, switch to it once released (a .htaccess change is needed if the major or minor version changes). Until then, and on versions with no patch, switch to a patched version (8.2.35/8.3.36/8.4.27) where available, or apply the php.ini settings in the notice (e.g. session.upload_progress.enabled = Off). On the plans where CPI changed the php.ini defaults (ZZ, older ACE01, CHM, CHM-S, CHM-Z, MG), a php.ini you placed yourself overrides them, so check its values. CPI does not support php.ini changes. The panel may show an old version even where the fix is applied."
+        date: "2026-10-29"
+        summary: "公式発表（10月29日19時00分更新）：SV-Basic、ビジネス スタンダード、CHM-11Z〜13Z、CHM-21Z〜23ZではPHP 8.2.35・8.3.36・8.4.27の修正版を10月22日に適用済み。ACE01（2015年9月〜2019年9月契約）には10月27日にパッチ適用版の7.4.34と8.0.30を適用済み。10月29日にSV-Basic、ビジネス スタンダード（2022年9月〜2025年12月契約）、CHM-11Z〜13Z、CHM-21Z〜23Zの7.4.xを7.4.34へ更新した。それ以外の旧バージョンや旧プラン（G、X、Z、ZZ、2015年9月以前契約のACE01、Pro、V、MG、CHM、CHM-S、CHM-Zなど）は今回のパッチの提供対象外で、php.iniでの緩和策を案内。CPI側でphp.iniのデフォルト値を変更する緩和策は、ZZ、ACE01（2011年10月〜2015年9月契約）、CHM01〜03、CHM-01S〜03S、CHM-01Z〜03Z、MG01〜05の全PHPバージョンに加え、10月29日の更新でACE01（2015年9月〜2019年9月契約）・SV-Basic・ビジネス スタンダード（2022年9月〜2025年12月契約）・CHM-11Z〜13Z・CHM-21Z〜23Zのパッチ未適用バージョン（8.0.30・8.1.33など）も対象とされたが、利用者が設置したphp.iniがあればその設定が優先される。G、X、Z、Pro、Vシリーズなどは対象に含まれていない。再開したコントロールパネルでは更新前のPHPバージョンが表示される場合があるが、パッチは適用済みとしている。利用者のサーバー自体は停止しておらず、不正アクセスは確認されていない。"
+        summary_en: "Official (updated Oct 29 19:00): SV-Basic, Business Standard and CHM-11Z to 23Z got the fixed releases 8.2.35, 8.3.36 and 8.4.27 on Oct 22. ACE01 (contracts Sep 2015 to Sep 2019) got patched 7.4.34 and 8.0.30 on Oct 27. On Oct 29, 7.4.x on SV-Basic, Business Standard (contracts Sep 2022 to Dec 2025), CHM-11Z to 13Z and CHM-21Z to 23Z was moved to patched 7.4.34. Other old versions and legacy plans (G, X, Z, ZZ, ACE01 before Sep 2015, Pro, V, MG, CHM, CHM-S, CHM-Z etc.) get no patch; customers are told to apply php.ini mitigations. CPI itself changed the php.ini defaults as a mitigation for every PHP version on ZZ, ACE01 (contracts Oct 2011 to Sep 2015), CHM01-03, CHM-01S-03S, CHM-01Z-03Z and MG01-05, and the Oct 29 update extends this to the unpatched versions (such as 8.0.30 and 8.1.33) on ACE01 (contracts Sep 2015 to Sep 2019), SV-Basic, Business Standard (contracts Sep 2022 to Dec 2025), CHM-11Z to 13Z and CHM-21Z to 23Z; a php.ini placed by the customer takes precedence. The G, X, Z, Pro and V series are not listed. The resumed control panel may show the pre-update version number, but the patch is applied. Customer servers were not stopped; no unauthorized access confirmed."
+        customer_action: "コントロールパネルで利用中のプランとPHPバージョンを確認。パッチ適用済み以外のバージョンでは、同じプランの修正済みバージョン（8.2.35／8.3.36／8.4.27／7.4.34。8.0.30はACE01（2018年3月〜2019年9月契約）のみパッチ適用済み）へ切替える（メジャー・マイナーバージョンが変わる場合は.htaccessの変更が必要）か、ビジネス スタンダードへのプラン変更を検討。切替えられない場合や提供対象外のプランでは、公式案内のphp.ini設定（session.upload_progress.enabled = Off など）を適用。CPIがphp.iniのデフォルト値を変更したプランでも、自分でphp.iniを設置している場合はその内容が優先されるため、設定値を確認する。php.iniの変更はCPIのサポート対象外。パネルの表示が古くても修正版は適用済みの場合がある。"
+        customer_action_en: "Check your plan and PHP version. On a version without the patch, switch to a patched version on your plan (8.2.35/8.3.36/8.4.27/7.4.34; 8.0.30 is patched only on ACE01 contracted Mar 2018 to Sep 2019; a .htaccess change is needed if the major or minor version changes), or consider moving to Business Standard. Where you cannot switch, or the plan gets no patch, apply the php.ini settings in the notice (e.g. session.upload_progress.enabled = Off). On the plans where CPI changed the php.ini defaults, a php.ini you placed yourself overrides them, so check its values. CPI does not support php.ini changes. The panel may show an old version even where the fix is applied."
         source: https://www.cpi.ad.jp/news/support-info/261022/
-        verified_at: "2026-10-29"
+        verified_at: "2026-10-30"
 
   - id: colorfulbox
     name: "ColorfulBox"
@@ -816,12 +816,13 @@ providers:
       php2shell:
         status: "n/a"
         confidence: official
-        summary: "Vercel の公式セキュリティ告知：公表前から既知の攻撃パターンを遮断するWAFルールを全プロジェクトに無償で自動適用し、Vercel 上のPHP関数と、Vercel が中継する外部PHPバックエンドへの通信を対象とした。Vercel が自社のPHPランタイムを更新したとの記載はなく、WAFは修正の代わりにならないとして、利用者にPHPランタイムの即時更新を求めている。告知に日付の記載はない。"
-        summary_en: "Vercel bulletin: WAF rules blocking known exploit patterns were deployed before disclosure and apply automatically, at no cost, to all projects, covering PHP functions on Vercel and requests proxied to external PHP backends. It does not say Vercel patched any PHP runtime. It tells customers to upgrade their PHP runtime immediately, since WAF rules do not replace patching. The bulletin carries no date."
+        date: "2026-10-21"
+        summary: "Vercel の公式セキュリティ告知（10月21日付）：公表前から既知の攻撃パターンを遮断するWAFルールを全プロジェクトに無償で自動適用し、Vercel 上のPHP関数と、Vercel が中継する外部PHPバックエンドへの通信を対象とした。Vercel が自社のPHPランタイムを更新したとの記載はなく、WAFは修正の代わりにならないとして、利用者にPHPランタイムの即時更新を求めている。"
+        summary_en: "Vercel bulletin (dated Oct 21): WAF rules blocking known exploit patterns were deployed before disclosure and apply automatically, at no cost, to all projects, covering PHP functions on Vercel and requests proxied to external PHP backends. It does not say Vercel patched any PHP runtime. It tells customers to upgrade their PHP runtime immediately, since WAF rules do not replace patching."
         customer_action: "Next.js など静的・JavaScriptのみのサイトはPHPの作業不要。Vercel でPHP関数を使っている場合や、Vercel 経由で外部のPHPサーバーを公開している場合は、PHPを 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 以降に更新して再デプロイし、外部サーバーへの直接アクセスを制限する。"
         customer_action_en: "Static or JavaScript-only sites (e.g. Next.js) need no PHP work. If you use PHP functions on Vercel or proxy to an external PHP backend through Vercel, update PHP to 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later, redeploy, and restrict direct access to the backend."
         source: https://vercel.com/kb/bulletin/php2shell-security-bulletin
-        verified_at: "2026-10-24"
+        verified_at: "2026-10-30"
       vercel-2026-04:
         title: "2026年4月のセキュリティ事故（環境変数の漏えい）"
         title_en: "April 2026 security incident (environment variables exposed)"
@@ -1268,13 +1269,13 @@ providers:
       php2shell:
         status: "n/a"
         confidence: official
-        date: "2026-10-22"
-        summary: "Akamai の公式ステータス「Customer Security Advisory」（10月21日掲載、10月22日更新）：自社基盤への影響を調査し、対策の一環として Cloud Infrastructure の速度テストを停止。Linode インスタンスで脆弱なPHPを動かしている利用者は、PHPの案内に従い上流の修正を適用するよう案内。修正版のバージョン番号は記載なし。"
-        summary_en: "Akamai status advisory (posted Oct 21, updated Oct 22): Akamai investigated the impact on its platform and took the Cloud Infrastructure speed tests offline as mitigation. Customers running vulnerable PHP on a Linode instance should follow PHP's guidance and apply upstream patches. No fixed version numbers given."
-        customer_action: "サーバー管理者（自社または制作会社）にPHPを修正版へ更新するよう依頼。"
-        customer_action_en: "Ask your administrator or agency to update PHP to a fixed release."
+        date: "2026-10-29"
+        summary: "Akamai の公式ステータス「Customer Security Advisory」（10月21日掲載、10月23日解決、10月29日ポストモーテム）：10月21日に全世界でWAFの緩和ルールを適用し、10月23日に自社基盤の評価と緩和を完了したとして解決。Cloud Infrastructure の速度テストは当面停止したまま。10月29日のポストモーテムでは、Marketplaceアプリのテンプレートを更新し新規デプロイは修正済みのPHPパッケージを使うが、既存の利用者管理インスタンスで脆弱なPHPを動かしている場合は利用者が上流の修正を適用する必要があるとした。調査は継続中。修正版のバージョン番号は記載なし。"
+        summary_en: "Akamai status advisory (posted Oct 21, resolved Oct 23, postmortem Oct 29): global WAF mitigation rules on Oct 21; on Oct 23 Akamai said its assessment and mitigation of its own platform were complete. Cloud Infrastructure speed tests stay offline for now. The Oct 29 postmortem says Marketplace templates were updated so new deployments use patched PHP packages, but existing customer-managed instances running vulnerable PHP need the customer to apply the official upstream updates. The investigation is ongoing. No fixed version numbers given."
+        customer_action: "サーバー管理者（自社または制作会社）にPHPを修正版へ更新するよう依頼。Marketplaceアプリで以前にデプロイしたインスタンスも自動では更新されないため、同様に更新する。"
+        customer_action_en: "Ask your administrator or agency to update PHP to a fixed release. Instances deployed earlier from Marketplace apps are not updated automatically; update them too."
         source: https://status.linode.com/incidents/wq8zlhk736fk
-        verified_at: "2026-10-24"
+        verified_at: "2026-10-30"
 
   - id: digitalocean
     name: "DigitalOcean"

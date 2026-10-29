@@ -1124,7 +1124,9 @@
     "https://www.onamae.com/news/article/11612",
     "https://www.onamae.com/news/article/11611",
     "https://www.onamae.com/news/article/11610",
-    "https://www.onamae.com/news/article/11620"
+    "https://www.onamae.com/news/article/11620",
+    "https://www.onamae.com/news/article/11624",
+    "https://www.onamae.com/news/article/11623"
   ],
   "https://www.wadax.ne.jp/news/": [
     "https://faq.wadax.ne.jp/s/",
@@ -1702,7 +1704,8 @@
     "https://www.ntt.com/business/navi/servicetop.html",
     "https://www.ntt.com/contact.html",
     "https://www.ntt.com/sitemap.html",
-    "https://www.youtube.com/user/NTTCommunicationsJP"
+    "https://www.youtube.com/user/NTTCommunicationsJP",
+    "https://support.ntt.com/mw-businessr3/information/detail/pid2500002hlk/"
   ],
   "https://www.sixapart.jp/movabletype/news/": [
     "https://movabletype.net/",
@@ -1991,7 +1994,8 @@
     "https://www.ionos-status.com/incidents/v1yw7spvyhw5",
     "https://www.ionos-status.com/incidents/vvfn7xq3sc6r",
     "https://www.ionos-status.com/incidents/wrf00shd565j",
-    "https://www.ionos-status.com/incidents/y840q1qcymsy"
+    "https://www.ionos-status.com/incidents/y840q1qcymsy",
+    "https://www.ionos-status.com/incidents/40nv6xx8mprc"
   ],
   "https://web-cloud.status-ovhcloud.com/history.rss": [
     "https://web-cloud.status-ovhcloud.com/incidents/06xhvct1blpp",
@@ -2018,7 +2022,8 @@
     "https://web-cloud.status-ovhcloud.com/incidents/tj654wpbxbll",
     "https://web-cloud.status-ovhcloud.com/incidents/w03htvk0yxyx",
     "https://web-cloud.status-ovhcloud.com/incidents/xx85mtt7p7sc",
-    "https://web-cloud.status-ovhcloud.com/incidents/z7z8fw3nybxs"
+    "https://web-cloud.status-ovhcloud.com/incidents/z7z8fw3nybxs",
+    "https://web-cloud.status-ovhcloud.com/incidents/qn5zfl825z9p"
   ],
   "https://www.namecheap.com/status-updates/category/hosting/feed/": [
     "https://www.namecheap.com/status-updates/ongoing-php-security-vulnerability-affecting-hosting-services-october-21-2026/",
