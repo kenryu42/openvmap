@@ -3,7 +3,7 @@
     "license": "GPL-3.0",
     "archived": false,
     "last_commit": "2026-09-16",
-    "stars": 16578,
+    "stars": 16581,
     "release": {
       "tag": "3.1.7",
       "date": "2026-06-25"
@@ -16,18 +16,18 @@
   "TwiN/gatus": {
     "license": "Apache-2.0",
     "archived": false,
-    "last_commit": "2026-10-22",
-    "stars": 12428,
+    "last_commit": "2026-10-28",
+    "stars": 12433,
     "release": {
-      "tag": "v5.37.0",
-      "date": "2026-09-24"
+      "tag": "v5.38.0",
+      "date": "2026-10-28"
     }
   },
   "anchore/grype": {
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-10-27",
-    "stars": 13129,
+    "stars": 13133,
     "release": {
       "tag": "v0.121.0",
       "date": "2026-10-19"
@@ -41,7 +41,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 38813,
+    "stars": 38815,
     "release": {
       "tag": "v0.76.1",
       "date": "2026-10-21"
@@ -55,7 +55,7 @@
     "license": "NOASSERTION",
     "archived": false,
     "last_commit": "2026-10-27",
-    "stars": 13887,
+    "stars": 13888,
     "release": {
       "tag": "1.4.5",
       "date": "2026-07-18"
@@ -83,7 +83,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-10-26",
-    "stars": 3332,
+    "stars": 3333,
     "release": {
       "tag": "v4.30.0",
       "date": "2026-10-02"
@@ -97,7 +97,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 15358,
+    "stars": 15362,
     "release": {
       "tag": "v1.8.2",
       "date": "2026-10-26"
@@ -110,8 +110,8 @@
   "dani-garcia/vaultwarden": {
     "license": "AGPL-3.0",
     "archived": false,
-    "last_commit": "2026-10-25",
-    "stars": 69828,
+    "last_commit": "2026-10-28",
+    "stars": 69850,
     "release": {
       "tag": "1.37.4",
       "date": "2026-10-05"
@@ -145,7 +145,7 @@
     "license": "NOASSERTION",
     "archived": false,
     "last_commit": "2026-10-27",
-    "stars": 18900,
+    "stars": 18902,
     "release": {
       "tag": "1.1.1",
       "date": "2026-08-15"
@@ -173,7 +173,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-10-23",
-    "stars": 30442,
+    "stars": 30458,
     "release": {
       "tag": "v8.30.1",
       "date": "2026-03-21"
@@ -183,7 +183,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 11301,
+    "stars": 11307,
     "release": {
       "tag": "v2.7.0",
       "date": "2026-10-12"
@@ -197,7 +197,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 1836,
+    "stars": 1843,
     "release": {
       "tag": "v2.7.0",
       "date": "2026-10-27"
@@ -207,7 +207,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 93034,
+    "stars": 93041,
     "release": {
       "tag": "2.5.8",
       "date": "2026-10-26"
@@ -231,7 +231,7 @@
     "license": "LGPL-2.1",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 3254,
+    "stars": 3257,
     "release": {
       "tag": "v1.33.0",
       "date": "2026-10-27"
@@ -241,7 +241,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 5794,
+    "stars": 5796,
     "release": {
       "tag": "v5.6.0",
       "date": "2026-10-12"
@@ -255,7 +255,7 @@
     "license": "AGPL-3.0",
     "archived": false,
     "last_commit": "2026-10-20",
-    "stars": 6192,
+    "stars": 6193,
     "release": {
       "tag": "v5.17.0",
       "date": "2026-10-20"
@@ -268,8 +268,8 @@
   "projectdiscovery/nuclei": {
     "license": "MIT",
     "archived": false,
-    "last_commit": "2026-10-27",
-    "stars": 32398,
+    "last_commit": "2026-10-28",
+    "stars": 32412,
     "release": {
       "tag": "v3.11.1",
       "date": "2026-08-08"
@@ -283,9 +283,9 @@
     "license": "AGPL-3.0",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 22939,
+    "stars": 22945,
     "release": {
-      "tag": "44.191.0",
+      "tag": "44.192.2",
       "date": "2026-10-28"
     },
     "scorecard": {
@@ -297,7 +297,7 @@
     "license": "BSD-2-Clause",
     "archived": false,
     "last_commit": "2026-10-18",
-    "stars": 36856,
+    "stars": 36863,
     "release": {
       "tag": "v0.19.1",
       "date": "2026-07-05"
@@ -310,8 +310,8 @@
   "semgrep/semgrep": {
     "license": "LGPL-2.1",
     "archived": false,
-    "last_commit": "2026-10-22",
-    "stars": 17320,
+    "last_commit": "2026-10-28",
+    "stars": 17325,
     "release": {
       "tag": "v1.182.0",
       "date": "2026-10-20"
@@ -321,7 +321,7 @@
     "license": "GPL-2.0",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 9251,
+    "stars": 9253,
     "release": {
       "tag": "v3.2.4",
       "date": "2026-07-12"
@@ -331,7 +331,7 @@
     "license": "AGPL-3.0",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 28752,
+    "stars": 28755,
     "release": {
       "tag": "v3.99.7",
       "date": "2026-10-24"
@@ -345,7 +345,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 16059,
+    "stars": 16062,
     "release": {
       "tag": "v2.17.0",
       "date": "2025-12-15"
@@ -359,7 +359,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-10-28",
-    "stars": 6809,
+    "stars": 6816,
     "release": {
       "tag": "v1.31.1",
       "date": "2026-10-15"
