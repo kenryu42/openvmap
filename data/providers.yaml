@@ -40,7 +40,7 @@
 
 incident: php2shell
 incident_cves: [CVE-2026-109618, CVE-2026-109619]
-updated_at: "2026-10-31"
+updated_at: "2026-11-01"
 
 providers:
 
@@ -1152,13 +1152,13 @@ providers:
       php2shell:
         status: "n/a"
         confidence: official
-        date: "2026-10-22"
-        summary: "AWSセキュリティ速報 2026-143-AWS（10月21日公開、10月22日更新）によると、AWSのサービス自体は影響を受けない。Amazon WorkMail は PHP 8.3.36 への更新を完了し利用者の作業は不要。Elastic Beanstalk は PHP 8.2〜8.5 の修正済みプラットフォームを公開済みで、マネージド更新を有効にしていれば次のメンテナンス時間に自動適用。Amazon Linux は更新済みPHPパッケージを提供（パッケージのバージョン番号は記載なし）。Lightsail は更新済みブループリントを公開したが、稼働中のインスタンスはその場で更新できない。Lambda にはマネージドPHPランタイムがなく、カスタムランタイムやコンテナで使う場合は利用者が更新する。PHP 5.4〜8.1 には修正版がない。"
-        summary_en: "AWS bulletin 2026-143-AWS (published Oct 21, updated Oct 22): AWS services themselves are not impacted. Amazon WorkMail has been upgraded to PHP 8.3.36 with no customer action. Elastic Beanstalk has patched platform versions for PHP 8.2-8.5, applied automatically when Managed Platform Updates is on. Amazon Linux has updated PHP packages (no version numbers given). Lightsail has updated blueprints, but running instances cannot be updated in place. Lambda has no managed PHP runtime; custom runtimes and container images are the customer's job. PHP 5.4-8.1 have no fix."
-        customer_action: "EC2・Lightsail・Lambda などでPHPを動かしている場合は、サーバー管理者（自社または制作会社）に 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 以降への更新を依頼。Lightsail は更新済みブループリントから新しいインスタンスを作って移行が必要。Elastic Beanstalk でマネージド更新を使っていない場合はプラットフォームバージョンを更新。8.1 以前は修正版がないため、サポート中のブランチへ移行。"
-        customer_action_en: "If PHP runs on EC2, Lightsail or Lambda, ask your administrator or agency to update to 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later. Lightsail needs a new instance from the updated blueprint and a migration. Elastic Beanstalk without Managed Platform Updates must update the platform version. PHP 8.1 and older have no fix; move to a supported branch."
+        date: "2026-10-30"
+        summary: "AWSセキュリティ速報 2026-143-AWS（10月21日公開、10月30日更新）によると、AWSのサービス自体は影響を受けない。Amazon WorkMail は PHP 8.3.36 への更新を完了し利用者の作業は不要。Elastic Beanstalk は PHP 8.2〜8.5 の修正済みプラットフォームを公開済みで、マネージド更新を有効にしていれば次のメンテナンス時間に自動適用。Amazon Linux は全リージョンで更新済みPHPパッケージを提供（パッケージのバージョン番号は記載なし）。Lightsail は全リージョンで更新済みブループリントを公開したが、稼働中のインスタンスはその場で更新できない。Lambda にはマネージドPHPランタイムがなく、カスタムランタイムやコンテナで使う場合は利用者が更新する（Bref は修正済みのレイヤーとDockerイメージを公開）。Amazon EMR on EC2 では Ganglia を含めて起動したリリース 4.2.0〜6.15.0 のクラスターが影響を受け（7.0.0 以降、Ganglia なし、EMR on EKS・Serverless は影響なし）、修正済みリリースには触れず Ganglia を外すか EMR 7.x へ移行するよう案内。CodeBuild は10月30日から PHP 8.2.35／8.3.36／8.4.27／8.5.12 入りのキュレートイメージを順次公開（PHPサーバーを起動するビルドだけが関係）。AWS WAF の PHP マネージドルールグループに両CVEの保護を順次追加中。PHP 5.4〜8.1 には修正版がない。"
+        summary_en: "AWS bulletin 2026-143-AWS (published Oct 21, updated Oct 30): AWS services themselves are not impacted. Amazon WorkMail has been upgraded to PHP 8.3.36 with no customer action. Elastic Beanstalk has patched platform versions for PHP 8.2-8.5, applied automatically when Managed Platform Updates is on. Amazon Linux has updated PHP packages in all regions (no version numbers given). Lightsail has updated blueprints in all regions, but running instances cannot be updated in place. Lambda has no managed PHP runtime; custom runtimes and container images are the customer's job (Bref has published patched layers and Docker images). Amazon EMR on EC2 clusters launched with Ganglia on releases 4.2.0-6.15.0 are affected (7.0.0+, clusters without Ganglia, EMR on EKS and Serverless are not); AWS names no fixed release and advises omitting Ganglia or moving to EMR 7.x. CodeBuild curated images with PHP 8.2.35/8.3.36/8.4.27/8.5.12 roll out from Oct 30 (relevant only to builds that start a PHP server). AWS is adding protection for both CVEs to the AWS WAF PHP Managed Rule Group. PHP 5.4-8.1 have no fix."
+        customer_action: "EC2・Lightsail・Lambda などでPHPを動かしている場合は、サーバー管理者（自社または制作会社）に 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 以降への更新を依頼。Lightsail は更新済みブループリントから新しいインスタンスを作って移行が必要。Elastic Beanstalk でマネージド更新を使っていない場合はプラットフォームバージョンを更新。EMR on EC2 で Ganglia を含むリリース 4.2.0〜6.15.0 を使っている場合は、Ganglia を外して起動するか EMR 7.x へ移行。CodeBuild でイメージのバージョンを固定している場合は最新イメージに更新し、キュレートイメージから作った独自イメージは作り直す。8.1 以前は修正版がないため、サポート中のブランチへ移行。"
+        customer_action_en: "If PHP runs on EC2, Lightsail or Lambda, ask your administrator or agency to update to 8.2.35 / 8.3.36 / 8.4.27 / 8.5.12 or later. Lightsail needs a new instance from the updated blueprint and a migration. Elastic Beanstalk without Managed Platform Updates must update the platform version. EMR on EC2 releases 4.2.0-6.15.0 with Ganglia: launch without Ganglia or move to EMR 7.x. CodeBuild with a pinned image version: update to the latest image, and rebuild custom images made from a curated image. PHP 8.1 and older have no fix; move to a supported branch."
         source: https://aws.amazon.com/security/security-bulletins/2026-143-aws/
-        verified_at: "2026-10-24"
+        verified_at: "2026-11-01"
 
   - id: google-cloud
     name: "Google Cloud"
