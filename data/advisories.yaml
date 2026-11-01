@@ -1,0 +1,227 @@
+# Advisories for OpenVMap: current vulnerabilities that matter to site owners.
+#
+# License: CC BY 4.0 (see data/LICENSE). The code is MIT (see LICENSE).
+#
+# One entry per advisory, shown at /advisories in the order listed here.
+# Each provider's announced status for an advisory lives in data/providers.yaml,
+# under incidents.<advisory id>; a provider without one shows "no statement".
+#
+# Rules for contributors (checked by `bun run validate-providers`):
+#   - Japanese text in the plain field, English in the _en field, as in
+#     providers.yaml. Write summaries on one line.
+#   - Every fix status needs a source link and checked_at, the date you last
+#     read that source (not the source's date).
+#     state: patched | testing (fix in testing) | none (no fix yet)
+#   - providers_checked_at is the date provider announcements were last
+#     looked for. Never record a provider status nobody announced.
+#   - ask / ask_en is the message to send a host. {vendor} and {domain} are
+#     filled in on the domain report.
+#   - kinds: the provider kinds whose rows on the domain report link here.
+#     required_for: kinds that must carry an entry for this advisory in
+#     providers.yaml (and so may not be n/a).
+#   - site_check: php ties the front-page PHP check, and the domain report's
+#     actions, to this advisory. It then needs fix_note and references.
+#   - guide: true when content/guide/<id>/ holds a guide for it.
+#   - Never link or include a proof-of-concept exploit.
+
+advisories:
+
+  - id: php2shell
+    title: "php2shell"
+    title_en: "php2shell"
+    cves: [CVE-2026-109618, CVE-2026-109619]
+    cvss: "9.2"
+    cvss_version: "4.0"
+    cvss_source: https://www.php.net/archive/2026.php
+    published: "2026-10-21"
+    summary: "PHP 本体の脆弱性2件。ログインなしでサーバー上のコードを実行される恐れがあり、Webリクエストを処理するほぼすべての PHP（5.4〜8.5）が対象。"
+    summary_en: "Two flaws in PHP itself that let an attacker run code on the server without logging in. Almost every PHP that serves web requests, 5.4 to 8.5, is affected."
+    upstream:
+      label: "PHP 8.5.12 / 8.4.27 / 8.3.36 / 8.2.35"
+      url: https://www.php.net/archive/2026.php
+      checked_at: "2026-11-02"
+    fixes:
+      - name: "Debian 12 / 13"
+        state: patched
+        detail: "php8.2 8.2.35-1~deb12u1（DLA-4848-1）、php8.4 8.4.27-1~deb13u1（DSA-6574-1）"
+        detail_en: "php8.2 8.2.35-1~deb12u1 (DLA-4848-1), php8.4 8.4.27-1~deb13u1 (DSA-6574-1)"
+        source: https://security-tracker.debian.org/tracker/CVE-2026-109618
+        checked_at: "2026-11-02"
+      - name: "Ubuntu"
+        state: patched
+        detail: "サポート中のすべてのリリースで修正済み。14.04〜20.04 は Ubuntu Pro で提供。"
+        detail_en: "Fixed on every supported release; 14.04 to 20.04 through Ubuntu Pro."
+        source: https://ubuntu.com/security/CVE-2026-109618
+        checked_at: "2026-11-02"
+      - name: "Red Hat Enterprise Linux 8 / 10"
+        state: patched
+        detail: "RHSA-2026:87070、87071、87073、87080 ほか（10月21日）"
+        detail_en: "RHSA-2026:87070, 87071, 87073, 87080 and others (Oct 21)"
+        source: https://access.redhat.com/security/cve/CVE-2026-109618
+        checked_at: "2026-11-02"
+      - name: "Red Hat Enterprise Linux 9"
+        state: none
+        detail: "php 8.0・8.2・8.3 は修正済み（RHSA-2026:87072、87079、87151）。php:8.4 モジュールは「Affected」のまま。"
+        detail_en: "php 8.0, 8.2 and 8.3 are fixed (RHSA-2026:87072, 87079, 87151); the php:8.4 module stream is still listed as Affected."
+        source: https://access.redhat.com/security/cve/CVE-2026-109618
+        checked_at: "2026-11-02"
+    stopgap: "完全な回避策はなく、更新だけが確実な対策（PHP 公式）。PHP 公式は特定の攻撃経路を減らす設定を挙げているが、それで安全になるわけではない。事業者が修正を確認するまでは、アクセス制限や一時的な公開停止も検討する。"
+    stopgap_en: "There is no complete mitigation; only the update fixes it (PHP project). The PHP project lists settings that reduce some attack paths, but none make a server safe. Until your host confirms the fix, consider restricting access or taking the site offline for a while."
+    fix_note: "修正方法は PHP を修正版（8.5.12 / 8.4.27 / 8.3.36 / 8.2.35）または事業者の修正済みビルドに更新することだけです。「AI脆弱性診断」などの外部診断サービスはサーバーのPHPを更新しません。見積もりが届いても、まず上の確認を済ませてください。"
+    fix_note_en: 'The only fix is updating PHP to a fixed release (8.5.12 / 8.4.27 / 8.3.36 / 8.2.35) or the provider''s patched build. An external "AI vulnerability assessment" does not update the PHP on your server. If you received a quote, finish the checks above first.'
+    references: "参考: IPA 注意喚起 https://www.ipa.go.jp/security/security-alert/2026/alert20261022.html / JPCERT/CC 注意喚起 https://www.jpcert.or.jp/at/2026/at260033.html"
+    references_en: "Reference: the PHP project's security advisory, https://www.php.net/archive/2026.php"
+    ask: |-
+      件名: PHPの脆弱性（CVE-2026-109618 / CVE-2026-109619）への対応状況のご確認
+
+      {vendor} ご担当者様
+
+      お世話になっております。
+      2026年10月21日に公開されたPHPの脆弱性（CVE-2026-109618、CVE-2026-109619、通称 php2shell）について、
+      弊社サイト（{domain}）に関する以下の点をご確認いただけますでしょうか。
+
+      1. 弊社サイトが稼働しているPHPのバージョン
+      2. 修正版（8.5.12 / 8.4.27 / 8.3.36 / 8.2.35）または同等の修正パッチの適用状況。
+         未適用の場合は、適用予定日時
+      3. PHP 8.1 以前で稼働している場合、サポート対象バージョンへの移行の要否・手順・費用
+      4. 10月17日以降の不審なアクセスや侵害の痕跡の有無
+         （JPCERT/CC は、異常に長い PHPSESSID Cookie などを確認観点として挙げています）
+      5. 更新作業を実際に担当する会社（再委託先を含めて）と、弊社側の窓口
+      6. 更新が終わるまでの間の対策（アクセス制限や一時的な公開停止など）の要否
+
+      参考:
+      - IPA 注意喚起: https://www.ipa.go.jp/security/security-alert/2026/alert20261022.html
+      - JPCERT/CC 注意喚起: https://www.jpcert.or.jp/at/2026/at260033.html
+
+      お手数をおかけしますが、よろしくお願いいたします。
+    ask_en: |-
+      Subject: Status of the PHP vulnerability fix (CVE-2026-109618 / CVE-2026-109619)
+
+      To: {vendor}
+
+      Regarding the PHP vulnerabilities published on 2026-10-21 (CVE-2026-109618 and CVE-2026-109619, "php2shell"),
+      could you confirm the following for our site ({domain})?
+
+      1. The PHP version our site runs on
+      2. Whether the fixed release (8.5.12 / 8.4.27 / 8.3.36 / 8.2.35) or an equivalent patch has been applied,
+         and if not, when it will be
+      3. If the site runs PHP 8.1 or older: whether a move to a supported version is needed, the steps, and the cost
+      4. Any sign of suspicious access or compromise since October 17
+         (JPCERT/CC, Japan's CERT, lists abnormally long PHPSESSID cookies among the indicators)
+      5. Which company actually does the update work, including any subcontractor, and who our contact is
+      6. Whether anything is needed in the meantime until the update is done (for example, restricting access or taking the site offline for a while)
+
+      Reference:
+      - PHP security advisory: https://www.php.net/archive/2026.php
+
+      Thank you.
+    kinds: [hosting, saas, paas, cloud]
+    required_for: [hosting]
+    site_check: php
+    guide: true
+    providers_checked_at: "2026-11-01"
+
+  - id: cve-2026-98432
+    title: "Linux カーネル IPv4 TCP の解放後使用"
+    title_en: "Linux kernel IPv4 TCP use-after-free"
+    cves: [CVE-2026-98432]
+    cvss: "9.8"
+    cvss_version: "3.1"
+    cvss_source: https://access.redhat.com/security/cve/CVE-2026-98432
+    published: "2026-10-15"
+    summary: "Linux カーネルが IPv4 の TCP 接続を受け付ける処理の解放後使用（use-after-free）。認証なしでネットワーク越しに到達でき、Linux 4.4 以降で修正を含まないカーネルが対象。修正はカーネルの更新と再起動（またはライブパッチ）。"
+    summary_en: "A use-after-free in the code Linux uses to accept IPv4 TCP connections, reachable over the network without authentication. Kernels from 4.4 on without the fix are affected. The fix is an updated kernel and a reboot (or a live patch)."
+    upstream:
+      label: "e3f33b0a1d89 (ipv4: free inet_opt and ireq_opt after an RCU grace period)"
+      url: https://github.com/torvalds/linux/commit/e3f33b0a1d89d738e2b913dab519226eaf76e15b
+      checked_at: "2026-11-02"
+    fixes:
+      - name: "Debian 12 / 13"
+        state: patched
+        detail: "bookworm 6.1.190-1（DLA-4841-1）、trixie 6.12.113-1（DSA-6568-1）"
+        detail_en: "bookworm 6.1.190-1 (DLA-4841-1), trixie 6.12.113-1 (DSA-6568-1)"
+        source: https://security-tracker.debian.org/tracker/CVE-2026-98432
+        checked_at: "2026-11-02"
+      - name: "SUSE Linux Enterprise 16.0 / 15 LTSS"
+        state: patched
+        detail: "SLES 16.0 と 15 SP4〜SP6 LTSS は修正版を公開済み。"
+        detail_en: "Fixed kernels released for SLES 16.0 and 15 SP4 to SP6 LTSS."
+        source: https://www.suse.com/security/cve/CVE-2026-98432.html
+        checked_at: "2026-11-02"
+      - name: "SUSE Linux Enterprise 15 SP7"
+        state: none
+        detail: "カーネルは「In progress」。"
+        detail_en: "Kernel listed as In progress."
+        source: https://www.suse.com/security/cve/CVE-2026-98432.html
+        checked_at: "2026-11-02"
+      - name: "Oracle Linux (UEK)"
+        state: patched
+        detail: "Oracle Linux 7〜10 の kernel-uek（ELSA-2026-500397、500398、500399、10月16日）"
+        detail_en: "kernel-uek on Oracle Linux 7 to 10 (ELSA-2026-500397, 500398, 500399, Oct 16)"
+        source: https://linux.oracle.com/cve/CVE-2026-98432.html
+        checked_at: "2026-11-02"
+      - name: "Amazon Linux 2 / 2023"
+        state: patched
+        detail: "すべてのカーネルパッケージが Fixed（最終 10月30日）。"
+        detail_en: "Every kernel package is Fixed (last on Oct 30)."
+        source: https://explore.alas.aws.amazon.com/CVE-2026-98432.html
+        checked_at: "2026-11-02"
+      - name: "AlmaLinux 8 / 9 / 10"
+        state: testing
+        detail: "修正済みカーネルを testing リポジトリで公開（10月30日）。errata にはまだ載っていない。"
+        detail_en: "Fixed kernels in the testing repository since Oct 30; not yet in the errata."
+        source: https://almalinux.org/blog/2026-10-30-cve-2026-98432/
+        checked_at: "2026-11-02"
+      - name: "Red Hat Enterprise Linux 8 / 9 / 10"
+        state: none
+        detail: "「Affected」。Red Hat は Critical と評価し、セキュリティ速報 RHSB-2026-016 で緩和策を公開。"
+        detail_en: "Listed as Affected. Red Hat rates it Critical and gives a mitigation in bulletin RHSB-2026-016."
+        source: https://access.redhat.com/security/cve/CVE-2026-98432
+        checked_at: "2026-11-02"
+      - name: "Ubuntu"
+        state: none
+        detail: "linux パッケージはすべてのリリースで「Vulnerable」（作業中）。"
+        detail_en: "The linux package is Vulnerable (work in progress) on every release."
+        source: https://ubuntu.com/security/CVE-2026-98432
+        checked_at: "2026-11-02"
+    stopgap: "修正済みカーネルを入れられるまでの間、IP オプション付きの IPv4 TCP パケットを nftables や iptables で破棄する。マルチパス TCP（MPTCP）を使っていなければ無効にする（sysctl net.mptcp.enabled=0）。手順は Red Hat の速報 RHSB-2026-016 を参照: https://access.redhat.com/security/vulnerabilities/RHSB-2026-016"
+    stopgap_en: "Until a fixed kernel is in place, drop IPv4 TCP packets that carry IP options with nftables or iptables, and turn off multipath TCP (MPTCP) if you do not use it (sysctl net.mptcp.enabled=0). Red Hat's bulletin RHSB-2026-016 gives the steps: https://access.redhat.com/security/vulnerabilities/RHSB-2026-016"
+    ask: |-
+      件名: Linux カーネルの脆弱性（CVE-2026-98432）への対応状況のご確認
+
+      {vendor} ご担当者様
+
+      お世話になっております。
+      2026年10月15日に公開された Linux カーネルの脆弱性（CVE-2026-98432、IPv4 TCP の解放後使用）について、
+      弊社サイト（{domain}）を動かしているサーバーに関する以下の点をご確認いただけますでしょうか。
+
+      1. 修正を含むカーネル（またはライブパッチ）の適用状況。未適用の場合は、適用予定日時
+      2. 適用までの間の緩和策（IP オプション付きパケットの破棄、MPTCP の無効化など）の有無
+      3. 再起動などによる停止の予定
+      4. 弊社側で必要な作業の有無
+
+      参考:
+      - Linux カーネルの修正: https://github.com/torvalds/linux/commit/e3f33b0a1d89d738e2b913dab519226eaf76e15b
+
+      お手数をおかけしますが、よろしくお願いいたします。
+    ask_en: |-
+      Subject: Status of the Linux kernel fix (CVE-2026-98432)
+
+      To: {vendor}
+
+      Regarding the Linux kernel vulnerability published on 2026-10-15 (CVE-2026-98432, an IPv4 TCP use-after-free),
+      could you confirm the following for the servers that run our site ({domain})?
+
+      1. Whether a kernel with the fix (or a live patch) has been applied, and if not, when it will be
+      2. Whether a mitigation is in place until then (for example, dropping packets with IP options or turning off MPTCP)
+      3. Any planned downtime, such as a reboot
+      4. Whether anything is needed on our side
+
+      Reference:
+      - Linux kernel fix: https://github.com/torvalds/linux/commit/e3f33b0a1d89d738e2b913dab519226eaf76e15b
+
+      Thank you.
+    kinds: [hosting, saas, paas, cloud, cdn]
+    required_for: []
+    guide: false
+    providers_checked_at: "2026-11-02"

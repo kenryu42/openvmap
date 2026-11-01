@@ -7,10 +7,11 @@ import { runCheck } from "@/lib/check";
 import { dohResolver } from "@/lib/doh";
 import type { Lang } from "@/lib/lang";
 import { loadProviders } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 
 vi.mock("next/navigation", () => ({ usePathname: () => "/about" }));
 
-const table = loadProviders(readFileSync("test/fixtures/providers.golden.yaml", "utf8"));
+const table = loadProviders(readFileSync("test/fixtures/providers.golden.yaml", "utf8"), advisories);
 
 async function hostsTheBrowserCheckContacts(domain: string): Promise<Set<string>> {
   const hosts = new Set<string>();

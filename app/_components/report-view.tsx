@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import { CopyButton, JumpWithoutFragment, StaleNotice } from "./client";
-import { Linkified, SectionHead, statusColor, StatusBadge } from "./site";
+import { advisoryHref, advisoryLabel, Linkified, SectionHead, statusColor, StatusBadge } from "./site";
 import type { Incident, Table } from "@/lib/provider";
 import { base, messages, type Lang } from "@/lib/lang";
-import { incidentChecks, pick, reportJson, type Report } from "@/lib/report";
+import { incidentChecks, pick, reportJson, type ProviderAdvisory, type Report } from "@/lib/report";
 
 export type PhpState = "pending" | "limited" | "unavailable" | "done";
 
@@ -80,7 +80,7 @@ export function ReportView({ report: r, table, lang, php, phpAgeS }: { report: R
 
       <Checklist report={r} table={table} lang={lang} php={php} />
 
-      {r.providers.length > 0 && <VendorMap report={r} lang={lang} />}
+      {r.providers.length > 0 && <VendorMap report={r} table={table} lang={lang} />}
 
       <section className="reveal mt-16">
         <SectionHead n={++n} title={s.secProviders} />
@@ -213,7 +213,7 @@ export function ReportView({ report: r, table, lang, php, phpAgeS }: { report: R
       </section>
 
       <section className="reveal mt-16">
-        <SectionHead n={++n} title={s.secStatus(table.incident)} />
+        <SectionHead n={++n} title={s.secStatus} />
         {r.providers.length === 0 && <Callout>{s.noProviders}</Callout>}
         <div className={`grid gap-4 ${r.providers.length > 1 ? "lg:grid-cols-2" : ""}`}>
           {r.providers.map((h) => (
@@ -231,13 +231,11 @@ export function ReportView({ report: r, table, lang, php, phpAgeS }: { report: R
                     {pick(ja, h.name_ja, h.name)}
                   </Link>
                 </div>
-                {h.incident && <StatusBadge status={h.incident.status} lang={lang} />}
               </div>
-              {h.incident ? (
-                <IncidentDetails inc={h.incident} lang={lang} />
-              ) : (
-                pick(ja, h.notes_ja, h.notes) && <p className="mt-3 text-sm leading-7 text-muted">{pick(ja, h.notes_ja, h.notes)}</p>
+              {!h.advisories.some((a) => a.entry) && pick(ja, h.notes_ja, h.notes) && (
+                <p className="mt-3 text-sm leading-7 text-muted">{pick(ja, h.notes_ja, h.notes)}</p>
               )}
+              {h.advisories.length > 0 && <ProviderAdvisories advisories={h.advisories} table={table} lang={lang} />}
               {h.other_incidents?.map((i) => (
                 <div key={i.key} className="mt-5 rounded-xl border border-[var(--bad)]/30 bg-[var(--bad-soft)]/50 p-4">
                   <p className="font-mono text-[11px] tracking-wide text-[var(--bad)] uppercase">{s.ui.otherIncidents}</p>
@@ -305,9 +303,11 @@ export function ReportView({ report: r, table, lang, php, phpAgeS }: { report: R
   );
 }
 
-function VendorMap({ report: r, lang }: { report: Report; lang: Lang }) {
+function VendorMap({ report: r, table, lang }: { report: Report; table: Table; lang: Lang }) {
   const s = messages(lang);
   const ja = lang === "ja";
+  const site = table.siteCheck("php");
+  const siteStatus = (advisories: ProviderAdvisory[]) => advisories.find((a) => a.id === site?.id)?.entry?.status;
   return (
     <section className="rise relative overflow-hidden rounded-3xl border border-rule bg-surface p-5 sm:p-8" style={{ "--i": 1 } as CSSProperties}>
       <div className="grain pointer-events-none absolute inset-0 opacity-70" />
@@ -321,35 +321,38 @@ function VendorMap({ report: r, lang }: { report: Report; lang: Lang }) {
           <span className="min-w-0 font-mono text-sm break-all">{r.domain}</span>
         </div>
         <ul className="relative space-y-2 pl-6 md:pl-10">
-          {r.providers.map((h, i) => (
-            <li key={h.id} className="group/li rise relative" style={{ "--i": i + 2 } as CSSProperties}>
-              <span className="absolute -top-1 -bottom-1 -left-6 w-px bg-rule-strong group-first/li:top-1/2 group-last/li:bottom-1/2 md:-left-10" />
-              <span className="absolute top-1/2 -left-6 h-px w-6 bg-rule-strong md:-left-10 md:w-10" />
-              <JumpWithoutFragment
-                to={`p-${h.id}`}
-                className="group flex w-full text-left flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-rule bg-paper px-4 py-2.5 transition-[border-color,transform] duration-300 ease-out-expo hover:translate-x-1 hover:border-ink"
-              >
-                <span className="size-2.5 shrink-0 rounded-full" style={{ background: h.incident ? statusColor[h.incident.status] : "var(--rule-strong)" }} />
-                <span className="font-semibold">{pick(ja, h.name_ja, h.name)}</span>
-                <span className="flex flex-wrap gap-1">
-                  {h.roles.map((role) => (
-                    <span key={role} className="rounded-md bg-sunken px-1.5 py-0.5 text-[11px] text-muted">
-                      {s.ui.roleLabels[role]}
-                    </span>
-                  ))}
-                </span>
-                <span className="ml-auto flex items-center gap-2">
-                  {h.other_incidents && h.other_incidents.length > 0 && (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-[var(--bad-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--bad)]">
-                      <span aria-hidden="true">⚠</span>
-                      {h.other_incidents.map((i) => pick(ja, i.title, i.title_en)).join(" / ")}
-                    </span>
-                  )}
-                  {h.incident && <StatusBadge status={h.incident.status} lang={lang} />}
-                </span>
-              </JumpWithoutFragment>
-            </li>
-          ))}
+          {r.providers.map((h, i) => {
+            const status = siteStatus(h.advisories);
+            return (
+              <li key={h.id} className="group/li rise relative" style={{ "--i": i + 2 } as CSSProperties}>
+                <span className="absolute -top-1 -bottom-1 -left-6 w-px bg-rule-strong group-first/li:top-1/2 group-last/li:bottom-1/2 md:-left-10" />
+                <span className="absolute top-1/2 -left-6 h-px w-6 bg-rule-strong md:-left-10 md:w-10" />
+                <JumpWithoutFragment
+                  to={`p-${h.id}`}
+                  className="group flex w-full text-left flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border border-rule bg-paper px-4 py-2.5 transition-[border-color,transform] duration-300 ease-out-expo hover:translate-x-1 hover:border-ink"
+                >
+                  <span className="size-2.5 shrink-0 rounded-full" style={{ background: status ? statusColor[status] : "var(--rule-strong)" }} />
+                  <span className="font-semibold">{pick(ja, h.name_ja, h.name)}</span>
+                  <span className="flex flex-wrap gap-1">
+                    {h.roles.map((role) => (
+                      <span key={role} className="rounded-md bg-sunken px-1.5 py-0.5 text-[11px] text-muted">
+                        {s.ui.roleLabels[role]}
+                      </span>
+                    ))}
+                  </span>
+                  <span className="ml-auto flex items-center gap-2">
+                    {h.other_incidents && h.other_incidents.length > 0 && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-[var(--bad-soft)] px-2 py-0.5 text-[11px] font-semibold text-[var(--bad)]">
+                        <span aria-hidden="true">⚠</span>
+                        {h.other_incidents.map((i) => pick(ja, i.title, i.title_en)).join(" / ")}
+                      </span>
+                    )}
+                    {status && <StatusBadge status={status} lang={lang} />}
+                  </span>
+                </JumpWithoutFragment>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </section>
@@ -360,17 +363,19 @@ function Checklist({ report: r, table, lang, php }: { report: Report; table: Tab
   const s = messages(lang);
   const ja = lang === "ja";
   type Row = { key: string; title: string; result: string; tone: string; target?: string };
+  const site = table.siteCheck("php");
+  const phpTitle = site ? advisoryLabel(site, lang) : "PHP";
   const phpRow: Row = r.php
     ? {
         key: "php",
-        title: s.ui.incidentLabel(table.incident, table.incident_cves),
+        title: phpTitle,
         result: s.verdictLabels[r.php.verdict],
         tone: r.php.verdict === "likely" || r.php.verdict === "possible" ? "var(--warn)" : "var(--ok)",
         target: "php",
       }
     : php === "pending"
-      ? { key: "php", title: s.ui.incidentLabel(table.incident, table.incident_cves), result: s.ui.checkPending, tone: "var(--idle)" }
-      : { key: "php", title: s.ui.incidentLabel(table.incident, table.incident_cves), result: s.ui.checkFailed, tone: "var(--idle)", target: "php" };
+      ? { key: "php", title: phpTitle, result: s.ui.checkPending, tone: "var(--idle)" }
+      : { key: "php", title: phpTitle, result: s.ui.checkFailed, tone: "var(--idle)", target: "php" };
   const rows: Row[] = [
     phpRow,
     ...incidentChecks(r, table).map((c): Row => {
@@ -435,6 +440,34 @@ function Callout({ children, tone = "idle" }: { children: React.ReactNode; tone?
 
 function Spinner() {
   return <span aria-hidden="true" className="inline-block size-4 shrink-0 animate-spin rounded-full border-2 border-rule-strong border-t-accent" />;
+}
+
+function ProviderAdvisories({ advisories, table, lang }: { advisories: ProviderAdvisory[]; table: Table; lang: Lang }) {
+  const s = messages(lang);
+  return (
+    <div className="mt-4 space-y-4">
+      <p className="text-xs font-semibold text-muted">{s.ui.providerAdvisories}</p>
+      {advisories.map(({ id, entry }) => {
+        const a = table.advisory(id);
+        if (!a) return null;
+        return (
+          <div key={id} className="border-t border-rule pt-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <Link href={advisoryHref(lang, id)} className="link text-sm font-semibold">
+                {advisoryLabel(a, lang)}
+              </Link>
+              {entry ? <StatusBadge status={entry.status} lang={lang} /> : <span className="text-xs text-muted">{s.ui.noStatement}</span>}
+            </div>
+            {entry ? (
+              <IncidentDetails inc={entry} lang={lang} />
+            ) : (
+              <p className="mt-1 text-xs leading-6 text-muted">{s.ui.noStatementAsOf(a.providers_checked_at)}</p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 function IncidentDetails({ inc, lang }: { inc: Incident; lang: Lang }) {

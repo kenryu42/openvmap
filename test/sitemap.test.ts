@@ -14,8 +14,8 @@ describe("sitemap", () => {
     }
   });
 
-  it("lists the home pages, the current incident's guide, tools and about in both languages", () => {
-    for (const path of ["/", "/ja", `/guide/${table.incident}`, `/ja/guide/${table.incident}`, "/tools", "/ja/tools", "/about", "/ja/about"]) {
+  it("lists the home pages, the advisories, the php2shell guide, tools and about in both languages", () => {
+    for (const path of ["/", "/ja", "/advisories", "/ja/advisories", "/guide/php2shell", "/ja/guide/php2shell", "/tools", "/ja/tools", "/about", "/ja/about"]) {
       expect(urls).toContain(`https://openvmap.com${path}`);
     }
   });

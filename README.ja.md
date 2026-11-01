@@ -21,7 +21,7 @@
 
 サーバーの脆弱性を修正するのは、サーバーを管理している事業者です。外部からの「診断」は何も修正しません。
 
-現在掲載中: php2shell（CVE-2026-109618 / CVE-2026-109619）。詳しくは[対応ガイド](content/guide/php2shell/ja.md)を読んでください。
+現在のアドバイザリー: php2shell（CVE-2026-109618 / CVE-2026-109619。[対応ガイド](content/guide/php2shell/ja.md)あり）と、Linux カーネル IPv4 TCP の解放後使用（CVE-2026-98432）。サイトの「アドバイザリー」のページに、開発元の修正、ディストリビューションの対応、各事業者の発表、ホスティング事業者に聞くことをまとめています。
 
 ## すること、しないこと
 
@@ -56,7 +56,7 @@ bun run deploy
 
 ## 貢献
 
-事業者の対応状況は [data/providers.yaml](data/providers.yaml)、ツールの一覧は [data/tools.yaml](data/tools.yaml) にあり、ルールは各ファイルの冒頭にあります。ASN を推測しない、公式発表以外は `secondary` と書く、必ず出典を付ける、の3点を守ってください。サイトで取り上げる事故は `providers.yaml` 冒頭の `incident:` で決まり、その対応ガイドは `content/guide/<incident>/` にあります。
+事業者の対応状況は [data/providers.yaml](data/providers.yaml)、ツールの一覧は [data/tools.yaml](data/tools.yaml) にあり、ルールは各ファイルの冒頭にあります。ASN を推測しない、公式発表以外は `secondary` と書く、必ず出典を付ける、の3点を守ってください。アドバイザリーは [data/advisories.yaml](data/advisories.yaml) にあります。各事業者の発表は、その事業者の `incidents:` の下にアドバイザリーの id で書きます。対応ガイドがあるアドバイザリーは `content/guide/<id>/` に置きます。
 
 ## ライセンス
 

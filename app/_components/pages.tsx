@@ -4,8 +4,9 @@ import { notFound } from "next/navigation";
 import type { CSSProperties, ReactNode } from "react";
 import { Arrow } from "./check";
 import { StaleNotice } from "./client";
-import { linkClass, Site, statusColor, StatusBadge } from "./site";
-import { incidentOf, otherIncidents, type Incident, type Provider, type Status } from "@/lib/provider";
+import { advisoryHref, advisoryLabel, linkClass, Site, statusColor, StatusBadge } from "./site";
+import type { Advisory } from "@/lib/advisory";
+import { incidentOf, type Incident, type Provider, type Status } from "@/lib/provider";
 import { base, messages, otherLang, pageAlternates, type Lang } from "@/lib/lang";
 import { pick } from "@/lib/report";
 import { dohService } from "@/lib/doh";
@@ -30,52 +31,16 @@ export function ProvidersPage({ lang }: { lang: Lang }) {
   const m = messages(lang);
   const s = m.ui;
   const p = base(lang);
-  const counts = new Map<Status, number>();
-  for (const pr of table.providers) {
-    const inc = incidentOf(pr, table.incident);
-    if (inc) counts.set(inc.status, (counts.get(inc.status) ?? 0) + 1);
-  }
-  const total = [...counts.values()].reduce((a, b) => a + b, 0);
+  const ja = lang === "ja";
   return (
-    <Site lang={lang} alt={`${base(otherLang(lang))}/providers`} incident={table.incident} wide>
-      <PageHead eyebrow={s.incidentLabel(table.incident, table.incident_cves)} title={s.providersTitle}>
+    <Site lang={lang} alt={`${base(otherLang(lang))}/providers`} wide>
+      <PageHead eyebrow={table.advisories.map((a) => advisoryLabel(a, lang)).join(" · ")} title={s.providersTitle}>
         <p className="mt-4 max-w-2xl leading-8 text-muted">{s.providersIntro}</p>
       </PageHead>
 
-      {total > 0 && (
-        <section className="rise mb-12 rounded-2xl border border-rule bg-surface p-5 sm:p-6" style={{ "--i": 1 } as CSSProperties}>
-          <div
-            className="flex h-3 gap-0.5 overflow-hidden rounded-full"
-            // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- <img> cannot hold the bar's segments
-            role="img"
-            aria-label={statusOrder
-              .filter((st) => counts.get(st))
-              .map((st) => `${m.statusLabels[st]} ${counts.get(st)}`)
-              .join(", ")}
-          >
-            {statusOrder
-              .filter((st) => counts.get(st))
-              .map((st, i) => (
-                <span
-                  key={st}
-                  className="h-full origin-left animate-[grow-x_1.1s_var(--ease-out-expo)_both]"
-                  style={{ flexGrow: counts.get(st), background: statusColor[st], animationDelay: `${i * 80}ms` }}
-                />
-              ))}
-          </div>
-          <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-            {statusOrder
-              .filter((st) => counts.get(st))
-              .map((st) => (
-                <li key={st} className="flex items-center gap-2">
-                  <span className="size-2.5 rounded-full" style={{ background: statusColor[st] }} />
-                  {m.statusLabels[st]}
-                  <span className="font-mono text-muted tabular-nums">{counts.get(st)}</span>
-                </li>
-              ))}
-          </ul>
-        </section>
-      )}
+      {table.advisories.map((a, i) => (
+        <StatusBar key={a.id} advisory={a} lang={lang} index={i + 1} />
+      ))}
 
       <div className="reveal -mx-4 overflow-x-auto px-4 sm:mx-0 sm:px-0">
         <table className="w-full border-collapse text-sm sm:min-w-[40rem]">
@@ -83,16 +48,18 @@ export function ProvidersPage({ lang }: { lang: Lang }) {
             <tr>
               <th className={th}>{s.colName}</th>
               <th className={`${th} hidden sm:table-cell`}>{s.colKind}</th>
-              <th className={th}>{s.colStatus(table.incident)}</th>
-              <th className={`${th} hidden sm:table-cell`}>{s.colConfidence}</th>
-              <th className={`${th} hidden sm:table-cell`}>{s.colDate}</th>
-              <th className={th}>{s.colSource}</th>
+              {table.advisories.map((a) => (
+                <th key={a.id} className={th}>
+                  <Link href={advisoryHref(lang, a.id)} className="link">
+                    {s.colStatus(pick(ja, a.title, a.title_en))}
+                  </Link>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
             {table.providers.map((pr) => {
-              const inc = incidentOf(pr, table.incident);
-              const name = pick(lang === "ja", pr.name_ja, pr.name);
+              const name = pick(ja, pr.name_ja, pr.name);
               return (
                 <tr key={pr.id} className="group transition-colors hover:bg-surface">
                   <td className={td}>
@@ -100,22 +67,35 @@ export function ProvidersPage({ lang }: { lang: Lang }) {
                       {name}
                       <Arrow className="size-3.5 -translate-x-1 opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100" />
                     </Link>
-                    <span className="mt-1 block text-xs text-muted sm:hidden">
-                      {[m.kindLabels[pr.kind], inc && m.confLabels[inc.confidence], inc?.date].filter(Boolean).join(" · ")}
-                    </span>
+                    <span className="mt-1 block text-xs text-muted sm:hidden">{m.kindLabels[pr.kind]}</span>
                   </td>
                   <td className={`${td} hidden text-muted sm:table-cell`}>{m.kindLabels[pr.kind]}</td>
-                  <td className={td}>{inc ? <StatusBadge status={inc.status} lang={lang} /> : <span className="text-faint">—</span>}</td>
-                  <td className={`${td} hidden text-muted sm:table-cell`}>{inc ? m.confLabels[inc.confidence] : ""}</td>
-                  <td className={`${td} hidden font-mono text-[13px] whitespace-nowrap text-muted tabular-nums sm:table-cell`}>{inc?.date ?? ""}</td>
-                  <td className={`${td} whitespace-nowrap`}>
-                    {inc?.source && (
-                      <a href={inc.source} className={linkClass} rel="noopener noreferrer">
-                        <span className="sr-only">{name} </span>
-                        {s.link}
-                      </a>
-                    )}
-                  </td>
+                  {table.advisories.map((a) => {
+                    const inc = incidentOf(pr, a.id);
+                    return (
+                      <td key={a.id} className={td}>
+                        {inc ? (
+                          <span className="flex flex-col items-start gap-1">
+                            <StatusBadge status={inc.status} lang={lang} />
+                            <span className="text-xs whitespace-nowrap text-muted">
+                              {[m.confLabels[inc.confidence], inc.date].filter(Boolean).join(" · ")}
+                              {inc.source && (
+                                <>
+                                  {" · "}
+                                  <a href={inc.source} className={linkClass} rel="noopener noreferrer">
+                                    <span className="sr-only">{name} </span>
+                                    {s.link}
+                                  </a>
+                                </>
+                              )}
+                            </span>
+                          </span>
+                        ) : (
+                          <span className="text-faint">—</span>
+                        )}
+                      </td>
+                    );
+                  })}
                 </tr>
               );
             })}
@@ -131,6 +111,45 @@ export function ProvidersPage({ lang }: { lang: Lang }) {
         </a>
       </div>
     </Site>
+  );
+}
+
+function StatusBar({ advisory: a, lang, index }: { advisory: Advisory; lang: Lang; index: number }) {
+  const m = messages(lang);
+  const counts = new Map<Status, number>();
+  for (const pr of table.providers) {
+    const inc = incidentOf(pr, a.id);
+    if (inc) counts.set(inc.status, (counts.get(inc.status) ?? 0) + 1);
+  }
+  const shown = statusOrder.filter((st) => counts.get(st));
+  if (shown.length === 0) return null;
+  return (
+    <section className="rise mb-6 rounded-2xl border border-rule bg-surface p-5 sm:p-6" style={{ "--i": index } as CSSProperties}>
+      <h2 className="mb-3 text-sm font-semibold">{advisoryLabel(a, lang)}</h2>
+      <div
+        className="flex h-3 gap-0.5 overflow-hidden rounded-full"
+        // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- <img> cannot hold the bar's segments
+        role="img"
+        aria-label={shown.map((st) => `${m.statusLabels[st]} ${counts.get(st)}`).join(", ")}
+      >
+        {shown.map((st, i) => (
+          <span
+            key={st}
+            className="h-full origin-left animate-[grow-x_1.1s_var(--ease-out-expo)_both]"
+            style={{ flexGrow: counts.get(st), background: statusColor[st], animationDelay: `${i * 80}ms` }}
+          />
+        ))}
+      </div>
+      <ul className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
+        {shown.map((st) => (
+          <li key={st} className="flex items-center gap-2">
+            <span className="size-2.5 rounded-full" style={{ background: statusColor[st] }} />
+            {m.statusLabels[st]}
+            <span className="font-mono text-muted tabular-nums">{counts.get(st)}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
   );
 }
 
@@ -157,7 +176,7 @@ function ProviderPage({ provider: pr, lang }: { provider: Provider; lang: Lang }
   const m = messages(lang);
   const s = m.ui;
   const ja = lang === "ja";
-  const inc = incidentOf(pr, table.incident);
+  const relevant = table.advisoriesOf(pr);
   const ids: [string, string[]][] = [
     [s.asns, pr.asns.map((a) => `AS${a}`)],
     [s.asNames, pr.as_name_contains],
@@ -170,33 +189,43 @@ function ProviderPage({ provider: pr, lang }: { provider: Provider; lang: Lang }
   ];
   const notes = pick(ja, pr.notes_ja, pr.notes);
   return (
-    <Site lang={lang} alt={`${base(otherLang(lang))}/providers/${pr.id}`} incident={table.incident}>
+    <Site lang={lang} alt={`${base(otherLang(lang))}/providers/${pr.id}`}>
       <Link href={`${base(lang)}/providers`} className="group mb-8 inline-flex items-center gap-2 text-sm text-muted transition-colors hover:text-ink">
         <Arrow className="size-4 rotate-180 transition-transform duration-300 group-hover:-translate-x-1" />
         {s.nav.providers}
       </Link>
-      <PageHead eyebrow={m.kindLabels[pr.kind]} title={providerTitle(pr, lang)}>
-        {inc && (
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <StatusBadge status={inc.status} lang={lang} />
-            <span className="text-sm text-muted">
-              {m.confLabels[inc.confidence]}
-              {inc.date && <span className="font-mono"> · {inc.date}</span>}
-            </span>
-          </div>
-        )}
-      </PageHead>
+      <PageHead eyebrow={m.kindLabels[pr.kind]} title={providerTitle(pr, lang)} />
 
-      {inc ? (
-        <section className="rise relative overflow-hidden rounded-2xl border border-rule bg-surface p-6 sm:p-8" style={{ "--i": 1 } as CSSProperties}>
-          <IncidentBody inc={inc} lang={lang} />
-        </section>
-      ) : (
-        <p className="rounded-2xl border border-rule bg-surface p-6 leading-8 text-muted">{s.noIncident}</p>
-      )}
+      {relevant.length === 0 && <p className="rounded-2xl border border-rule bg-surface p-6 leading-8 text-muted">{s.noIncident}</p>}
+      <div className="space-y-6">
+        {relevant.map(({ advisory: a, entry: inc }, i) => (
+          <section
+            key={a.id}
+            id={a.id}
+            className="rise relative scroll-mt-24 overflow-hidden rounded-2xl border border-rule bg-surface p-6 sm:p-8"
+            style={{ "--i": i + 1 } as CSSProperties}
+          >
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <h2 className="text-xl font-bold">
+                <Link href={advisoryHref(lang, a.id)} className="link">
+                  {advisoryLabel(a, lang)}
+                </Link>
+              </h2>
+              {inc && <StatusBadge status={inc.status} lang={lang} />}
+              {inc && (
+                <span className="text-sm text-muted">
+                  {m.confLabels[inc.confidence]}
+                  {inc.date && <span className="font-mono"> · {inc.date}</span>}
+                </span>
+              )}
+            </div>
+            {inc ? <IncidentBody inc={inc} lang={lang} /> : <p className="leading-8 text-muted">{s.noStatementAsOf(a.providers_checked_at)}</p>}
+          </section>
+        ))}
+      </div>
       {notes && <p className="mt-8 max-w-3xl leading-8">{notes}</p>}
 
-      {otherIncidents(pr, table.incident).map((i) => (
+      {table.ownIncidents(pr).map((i) => (
         <section key={i.key} className="reveal relative mt-10 overflow-hidden rounded-2xl border border-[var(--bad)]/30 bg-[var(--bad-soft)]/40 p-6 sm:p-8">
           <p className="font-mono text-[11px] tracking-wide text-[var(--bad)] uppercase">{s.otherIncidents}</p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -287,7 +316,7 @@ const browserRecipients = [
 export function AboutPage({ lang }: { lang: Lang }) {
   const ja = lang === "ja";
   return (
-    <Site lang={lang} alt={`${base(otherLang(lang))}/about`} incident={table.incident}>
+    <Site lang={lang} alt={`${base(otherLang(lang))}/about`}>
       {ja ? (
         <div className="prose rise mx-auto">
           <h1>このツールについて</h1>

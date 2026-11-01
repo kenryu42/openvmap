@@ -6,7 +6,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { checkPage, defaultUserAgent, rfc3339, runCheck, type CheckOptions, type Transport } from "@/lib/check";
 import type { Resolver } from "@/lib/dns";
 import { loadProviders } from "@/lib/provider";
-import { addPage, finalize, ipaAlert, phpAdvisory, reportJson } from "@/lib/report";
+import { advisories } from "@/lib/table";
+import { addPage, finalize, reportJson } from "@/lib/report";
 
 const notFound = () => Promise.reject(Object.assign(new Error("ENOTFOUND"), { code: "ENOTFOUND" }));
 
@@ -28,7 +29,7 @@ const resolver: Resolver = {
   },
 };
 
-const table = loadProviders(readFileSync("test/fixtures/providers.golden.yaml", "utf8"));
+const table = loadProviders(readFileSync("test/fixtures/providers.golden.yaml", "utf8"), advisories);
 const wordpress = readFileSync("test/fixtures/wordpress.html");
 
 let server: http.Server;
@@ -83,6 +84,9 @@ async function fullCheck(domain: string, o = options()) {
   return r;
 }
 
+const ipaAlert = "https://www.ipa.go.jp/security/security-alert/2026/alert20261022.html";
+const phpAdvisory = "https://www.php.net/archive/2026.php";
+
 describe("runCheck", () => {
   it("reproduces the Go golden JSON for an Xserver WordPress site", async () => {
     const r = await fullCheck("https://Example.co.jp/");
@@ -108,7 +112,7 @@ describe("runCheck", () => {
     expect(drop(json)).toEqual(drop(JSON.parse(goldenText) as Record<string, unknown>));
     expect(JSON.stringify(json, null, 2) + "\n").toBe(goldenText);
 
-    finalize(r, "en");
+    finalize(r, "en", table);
     const en = r.actions.join("\n");
     expect(en).toContain("Xserver reports the fix as complete");
     expect(en).toContain("below the fixed release");
@@ -129,7 +133,7 @@ describe("runCheck", () => {
   });
 
   it("names the GMO service that hosts a site on GMO's shared network", async () => {
-    const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"));
+    const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories);
     const onGmo = (ns: string[], ptr?: string): Resolver => ({
       ...resolver,
       resolve4: (h) => (h === "shop.example.jp" ? Promise.resolve(["157.7.44.160"]) : notFound()),
@@ -159,7 +163,7 @@ describe("runCheck", () => {
   });
 
   it("names the global host that runs a site on a cloud's or a shared network", async () => {
-    const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"));
+    const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories);
     const web = async (ip: string, asn: number, asName: string, ns: string[], ptr?: string) => {
       const rev = ip.split(".").reverse().join(".");
       const on: Resolver = {

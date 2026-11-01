@@ -21,7 +21,7 @@ Enter a domain and OpenVMap shows:
 
 A flaw on the server is fixed by whoever runs the server. An outside "scan" fixes nothing.
 
-Currently tracking: php2shell (CVE-2026-109618 / CVE-2026-109619). Read the [guide](content/guide/php2shell/en.md).
+Current advisories: php2shell (CVE-2026-109618 / CVE-2026-109619; read the [guide](content/guide/php2shell/en.md)) and a Linux kernel IPv4 TCP use-after-free (CVE-2026-98432). Each is on the site's Advisories page with its upstream fix, distribution status, what providers have announced, and what to ask your host.
 
 ## What it does and doesn't do
 
@@ -56,7 +56,7 @@ bun run deploy
 
 ## Contributing
 
-Provider status lives in [data/providers.yaml](data/providers.yaml) and the tool list in [data/tools.yaml](data/tools.yaml); the rules are at the top of each file. Never guess an ASN, mark anything but an official announcement as `secondary`, and always link the source. The incident the site features is `incident:` at the top of `providers.yaml`, and its guide is in `content/guide/<incident>/`.
+Provider status lives in [data/providers.yaml](data/providers.yaml) and the tool list in [data/tools.yaml](data/tools.yaml); the rules are at the top of each file. Never guess an ASN, mark anything but an official announcement as `secondary`, and always link the source. Advisories live in [data/advisories.yaml](data/advisories.yaml); a provider's announced status for one goes under its id in that provider's `incidents:`, and an advisory's guide, if it has one, is in `content/guide/<id>/`.
 
 ## License
 

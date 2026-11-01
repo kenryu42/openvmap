@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { messages, type Lang } from "@/lib/lang";
-import { daysSince, staleAfterDays } from "@/lib/stale";
+import { daysSince, isStale, staleAfterDays } from "@/lib/stale";
 
 export function CopyButton({ text, lang, label }: { text: string; lang: Lang; label?: string }) {
   const s = messages(lang).ui;
@@ -70,5 +70,43 @@ export function StaleNotice({ verifiedAt, lang }: { verifiedAt: string; lang: La
       <span aria-hidden="true">⚠</span>
       {messages(lang).stale(age)}
     </p>
+  );
+}
+
+function useStale(checkedOn: string): boolean {
+  return useSyncExternalStore(
+    ignoreClockChanges,
+    () => isStale(checkedOn, Date.now()),
+    () => false,
+  );
+}
+
+const greyedWhenStale = "data-stale:opacity-50 data-stale:grayscale";
+
+export function StaleRow({ checkedOn, children }: { checkedOn: string; children: ReactNode }) {
+  const stale = useStale(checkedOn);
+  return (
+    <tr data-stale={stale || undefined} className={`align-top ${greyedWhenStale}`}>
+      {children}
+    </tr>
+  );
+}
+
+export function StaleBlock({ checkedOn, className = "", children }: { checkedOn: string; className?: string; children: ReactNode }) {
+  const stale = useStale(checkedOn);
+  return (
+    <div data-stale={stale || undefined} className={`${className} ${greyedWhenStale}`}>
+      {children}
+    </div>
+  );
+}
+
+export function CheckedOn({ date, lang }: { date: string; lang: Lang }) {
+  const stale = useStale(date);
+  return (
+    <span className="font-mono text-[12px] whitespace-nowrap tabular-nums">
+      <time dateTime={date}>{date}</time>
+      {stale && <span className="ml-1.5 font-sans text-[11px] text-muted">({messages(lang).ui.advisories.stale(staleAfterDays)})</span>}
+    </span>
   );
 }

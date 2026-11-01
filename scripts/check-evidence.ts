@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import { loadAdvisories } from "../lib/advisory";
 import { loadProviders, type Table } from "../lib/provider";
 import type { Manifest } from "./check-sources";
 
@@ -50,7 +51,6 @@ export function checkEvidence(
     }
   }
 
-  if (after.incident !== before.incident) errors.push("the incident key may not change");
   const ids = new Set([...before.providers, ...after.providers].map((p) => p.id));
   const updated = new Set(e.handled.filter((h) => h.change === "updated").map((h) => h.provider));
   for (const id of ids) {
@@ -59,8 +59,9 @@ export function checkEvidence(
     if (!was || !now) errors.push(`${id}: providers may not be added or removed`);
     else if (JSON.stringify(was) !== JSON.stringify(now) && !updated.has(id)) errors.push(`${id}: edited without evidence`);
   }
-  const status = (t: Table, id: string) => t.get(id)?.incidents[after.incident]?.status;
-  const pendingPatchedMoves = [...ids].filter((id) => status(after, id) === "patched" && status(before, id) !== "patched");
+  const status = (t: Table, id: string, advisory: string) => t.get(id)?.incidents[advisory]?.status;
+  const movedToPatched = (id: string) => after.advisories.some((a) => status(after, id, a.id) === "patched" && status(before, id, a.id) !== "patched");
+  const pendingPatchedMoves = [...ids].filter(movedToPatched);
   const accept = m.items
     .filter((i) => i.file && i.providers.every((p) => !pendingPatchedMoves.includes(p) && e.handled.some((h) => h.provider === p && h.url === i.url)))
     .map((i) => i.url);
@@ -85,14 +86,16 @@ function entries(yaml: string): { head: string; blocks: { id: string; text: stri
 function heldReport(held: readonly string[], after: Table, e: Evidence): string {
   const lines = ["## Held for review: proposed moves to patched", ""];
   for (const id of held) {
-    const inc = after.get(id)?.incidents[after.incident];
-    lines.push(
-      `### ${id}`,
-      "",
-      `- status: ${inc?.status}, date: ${inc?.date ?? ""}, source: ${inc?.source ?? ""}`,
-      `- summary: ${inc?.summary}`,
-      `- summary_en: ${inc?.summary_en}`,
-    );
+    lines.push(`### ${id}`, "");
+    for (const a of after.advisories) {
+      const inc = after.get(id)?.incidents[a.id];
+      if (!inc) continue;
+      lines.push(
+        `- ${a.id}: status: ${inc.status}, date: ${inc.date ?? ""}, source: ${inc.source ?? ""}`,
+        `  - summary: ${inc.summary}`,
+        `  - summary_en: ${inc.summary_en}`,
+      );
+    }
     for (const h of e.handled.filter((h) => h.provider === id)) {
       lines.push(`- quotes from ${h.url}:`, ...h.quotes.map((q) => `  > ${q.replace(/\s+/g, " ")}`));
     }
@@ -114,8 +117,9 @@ if (import.meta.main) {
   const e: Evidence = existsSync(evidencePath) ? (JSON.parse(readFileSync(evidencePath, "utf8")) as Evidence) : { handled: [] };
   const committed = execFileSync("git", ["show", "HEAD:data/providers.yaml"], { encoding: "utf8" });
   const edited = readFileSync("data/providers.yaml", "utf8");
-  const after = loadProviders(edited);
-  const { accept, errors, held } = checkEvidence(m, texts, e, loadProviders(committed), after);
+  const advisories = loadAdvisories(readFileSync("data/advisories.yaml", "utf8"));
+  const after = loadProviders(edited, advisories);
+  const { accept, errors, held } = checkEvidence(m, texts, e, loadProviders(committed, advisories), after);
   if (errors.length > 0) {
     for (const err of errors) console.error(err);
     process.exit(1);

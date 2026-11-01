@@ -2,7 +2,7 @@
 #
 # One entry per hosting, site-platform, cloud, CDN, DNS or mail provider,
 # with how to recognise it from public DNS and BGP data, and its published
-# response to the current incident.
+# response to each advisory in data/advisories.yaml.
 #
 # License: CC BY 4.0 (see data/LICENSE). The code is MIT (see LICENSE).
 #
@@ -27,20 +27,21 @@
 #   - verified_at is the date you last read the source, not the source's date.
 #   - news is the provider's own list of notices (or its feed), opened and
 #     seen to list its notices. check-sources reports new posts on it whose
-#     title mentions PHP, a vulnerability, security, an emergency or a pause.
+#     title mentions PHP, the Linux kernel, a vulnerability, security, an
+#     emergency or a pause.
 #
-# incident is the incident the site features; incident_cves are shown next to
-# its name, and content/guide/<incident>/ holds its guide.
+# incidents holds, under each advisory's id from data/advisories.yaml, what the
+# provider announced about it; leave it out when the provider has said nothing.
+# Any other key is the provider's own security incident and needs a title.
 #
 # Status values: patched | in_progress | unknown | conflicting | n/a
 # Kinds: hosting (runs PHP for the customer) | saas (runs the whole site on
 #        its own platform) | paas (runs the customer's containers; the
 #        customer runs PHP) | cloud (customer runs PHP) | cdn | dns | mail
-# n/a is for kinds that run no PHP for the customer: saas, paas, cloud, cdn, dns, mail.
+# n/a is for kinds that do not run the affected software for the customer;
+# an advisory's required_for kinds may not use it.
 
-incident: php2shell
-incident_cves: [CVE-2026-109618, CVE-2026-109619]
-updated_at: "2026-11-01"
+updated_at: "2026-11-02"
 
 providers:
 
@@ -1355,6 +1356,16 @@ providers:
         customer_action_en: "SiteGround says no action is needed. Sites manually pinned to PHP 8.1 or older (e.g. 7.3 or 7.4) have no upstream fix, so consider switching to Managed PHP or 8.2+ in Site Tools."
         source: https://www.siteground.com/blog/critical-php-vulnerabilities-october-2026
         verified_at: "2026-10-29"
+      cve-2026-98432:
+        status: "patched"
+        confidence: official
+        date: "2026-10-30"
+        summary: "公式ブログ（10月30日）：独自のライブパッチを作り、報道と同じ日に全サーバーへ適用したとしている。再起動はなく、サイトは稼働したままで、利用者の作業は不要としている。"
+        summary_en: "Official blog (Oct 30): SiteGround says it built a custom live patch and applied it across its servers the same day the flaw made headlines, with no restart and sites online throughout, and that customers do not need to do anything."
+        customer_action: "SiteGroundのホスティングでは作業は不要とされる。自分で管理しているLinuxサーバーがあれば、配布元の修正済みカーネルを確認する。"
+        customer_action_en: "SiteGround says its hosting customers need do nothing. Linux servers you run yourself need your distribution's fixed kernel."
+        source: https://www.siteground.com/blog/linux-kernel-tcp-vulnerability-cve-2026-98432
+        verified_at: "2026-11-02"
 
   # ---- CDN (hides the origin)
 

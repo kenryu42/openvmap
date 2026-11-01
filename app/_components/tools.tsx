@@ -6,7 +6,6 @@ import { repoUrl as siteRepoUrl } from "@/lib/meta";
 import { pick } from "@/lib/report";
 import { toolActivity, toolJobs, toolMaintenance } from "@/lib/tool-catalog";
 import { quietAfterDays, repoUrl, scorecardUrl, type Tool } from "@/lib/tools";
-import { table } from "@/lib/table";
 
 const chip = "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs leading-5 font-semibold whitespace-nowrap";
 
@@ -14,7 +13,7 @@ export function ToolsPage({ lang }: { lang: Lang }) {
   const t = messages(lang).tools;
   const ja = lang === "ja";
   return (
-    <Site lang={lang} alt={`${base(otherLang(lang))}/tools`} incident={table.incident} wide>
+    <Site lang={lang} alt={`${base(otherLang(lang))}/tools`} wide>
       <PageHead eyebrow={t.eyebrow} title={t.title}>
         <p className="mt-4 max-w-2xl leading-8 text-muted">{t.intro}</p>
       </PageHead>

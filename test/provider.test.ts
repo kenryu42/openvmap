@@ -1,9 +1,9 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { incidentOf, loadProviders, type Provider } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 
 const fixture = `
-incident: php2shell
 updated_at: "2026-10-23"
 providers:
   - id: xserver
@@ -41,7 +41,7 @@ providers:
     ns_contains: [awsdns]
 `;
 
-const tbl = loadProviders(fixture);
+const tbl = loadProviders(fixture, advisories);
 
 describe("byAsn", () => {
   it("matches the ASN, then the AS name", () => {
@@ -87,12 +87,12 @@ describe("loadProviders", () => {
     "providers:\n  - id: a\n    kind: hosting\n    news: [https://a.example/]\n",
     "providers: [",
   ])("rejects %j", (bad) => {
-    expect(() => loadProviders(bad)).toThrow(/^providers: /);
+    expect(() => loadProviders(bad, advisories)).toThrow(/^providers: /);
   });
 
   it("parses the shipped table and every hosting provider has a php2shell entry", () => {
-    const t = loadProviders(readFileSync("data/providers.yaml", "utf8"));
-    expect(t.incident).toBe("php2shell");
+    const t = loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories);
+    expect(t.advisory("php2shell")?.site_check).toBe("php");
     for (const id of ["xserver", "sakura", "lolipop", "conoha", "cloudflare", "aws"]) {
       expect(t.get(id), id).toBeDefined();
     }
@@ -104,7 +104,7 @@ describe("loadProviders", () => {
   });
 
   it("does not take another network of the same company for the cloud", () => {
-    const t = loadProviders(readFileSync("data/providers.yaml", "utf8"));
+    const t = loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories);
     expect(t.byAsn(16591, "GOOGLE-FIBER - Google Fiber Inc., US")).toBeUndefined();
     expect(t.byAsn(19527, "GOOGLE-CLOUD-PLATFORM - Google LLC, US")?.id).toBe("google-cloud");
     expect(t.byAsn(8987, "AMAZON-EXPANSION - Amazon Data Services Ireland Ltd, IE")?.id).toBe("aws");

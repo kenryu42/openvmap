@@ -14,8 +14,7 @@ import {
 import { CheckForm } from "./check";
 import { HeroMap } from "./hero-map";
 import { Reveal, TaglineReveal } from "./motion";
-import { guidePath, Site } from "./site";
-import { incidentOf, otherIncidents } from "@/lib/provider";
+import { advisoryLabel, Site } from "./site";
 import { base, homeHref, messages, otherLang, type Lang } from "@/lib/lang";
 import { pick } from "@/lib/report";
 import { repoUrl } from "@/lib/meta";
@@ -23,10 +22,13 @@ import { table } from "@/lib/table";
 
 function figures(lang: Lang) {
   const ja = lang === "ja";
-  const listed = table.providers.filter((p) => incidentOf(p, table.incident));
-  const official = listed.filter((p) => incidentOf(p, table.incident)?.confidence === "official").length;
-  const others = table.providers.filter((p) => otherIncidents(p, table.incident).length > 0).map((p) => pick(ja, p.name_ja, p.name));
-  return { listed: listed.length, official, others: others.join(ja ? "・" : ", "), updated: table.updated_at };
+  const statements = (p: (typeof table.providers)[number]) => table.advisoriesOf(p).flatMap((a) => (a.entry ? [a.entry] : []));
+  const listed = table.providers.filter((p) => statements(p).length > 0);
+  const official = listed.filter((p) => statements(p).some((e) => e.confidence === "official")).length;
+  const others = table.providers.filter((p) => table.ownIncidents(p).length > 0).map((p) => pick(ja, p.name_ja, p.name));
+  const titles = table.advisories.map((a) => pick(ja, a.title, a.title_en)).join(ja ? "・" : ", ");
+  const covering = table.advisories.map((a) => advisoryLabel(a, lang)).join(ja ? "、" : ", ");
+  return { listed: listed.length, official, others: others.join(ja ? "・" : ", "), titles, covering, updated: table.updated_at };
 }
 
 const benefitIcons = [BuildingsIcon, NewspaperIcon, WarningIcon, ChatTextIcon, FeatherIcon];
@@ -65,7 +67,7 @@ export function HomePage({ lang }: { lang: Lang }) {
   };
 
   return (
-    <Site lang={lang} alt={homeHref(otherLang(lang))} incident={table.incident} wide>
+    <Site lang={lang} alt={homeHref(otherLang(lang))} wide>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqLd) }} />
 
       <section className="grid items-center gap-12 pb-24 lg:grid-cols-[minmax(0,680px)_1fr]">
@@ -73,7 +75,7 @@ export function HomePage({ lang }: { lang: Lang }) {
           <Reveal>
             <p className="inline-flex max-w-full items-center gap-2 rounded-full border border-rule bg-surface px-3 py-1 font-mono text-xs text-muted">
               <span className="relative inline-flex size-2 shrink-0 rounded-full bg-accent text-accent pulse" />
-              <span className="min-w-0">{s.nowCovering(s.incidentLabel(table.incident, table.incident_cves))}</span>
+              <span className="min-w-0">{s.nowCovering(f.covering)}</span>
             </p>
           </Reveal>
           <Reveal delay={100}>
@@ -128,7 +130,7 @@ export function HomePage({ lang }: { lang: Lang }) {
           <SectionTitle>{h.benefitsTitle}</SectionTitle>
         </Reveal>
         <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
-          {h.benefits(f.listed, f.others, table.incident).map((b, i) => {
+          {h.benefits(f.listed, f.others, f.titles).map((b, i) => {
             const Icon = benefitIcons[i];
             return (
               <li key={b.title} className={i < 2 ? "lg:col-span-3" : "lg:col-span-2"}>
@@ -231,8 +233,8 @@ export function HomePage({ lang }: { lang: Lang }) {
             <p className="mt-4 max-w-[680px] text-lg text-muted">{h.finalBody}</p>
             <CheckForm lang={lang} id="domain-final" className="mt-8 max-w-[680px]" />
             <Reassure items={h.reassure} className="mt-4" />
-            <Link href={guidePath(lang, table.incident)} className="link mt-8 inline-flex items-center gap-2 text-sm">
-              {s.readGuide}
+            <Link href={`${p}/advisories`} className="link mt-8 inline-flex items-center gap-2 text-sm">
+              {s.advisories.seeAll}
               <ArrowRightIcon className="size-4" aria-hidden="true" />
             </Link>
           </div>

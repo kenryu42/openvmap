@@ -1,10 +1,11 @@
 import { load } from "js-yaml";
+import type { Advisory, SiteCheck } from "./advisory";
 import { fieldReaders } from "./yaml-fields";
 
 const { obj, list_, strs, str } = fieldReaders("providers");
 
 export type Kind = "hosting" | "saas" | "paas" | "cloud" | "cdn" | "dns" | "mail" | "ca";
-const kinds: readonly Kind[] = ["hosting", "saas", "paas", "cloud", "cdn", "dns", "mail", "ca"];
+export const kinds: readonly Kind[] = ["hosting", "saas", "paas", "cloud", "cdn", "dns", "mail", "ca"];
 
 export type Confidence = "official" | "secondary" | "";
 const confidences: readonly string[] = ["official", "secondary", ""];
@@ -51,22 +52,43 @@ export function incidentOf(p: Provider | undefined, key: string): Incident | und
   return p && Object.hasOwn(p.incidents, key) ? p.incidents[key] : undefined;
 }
 
-export function otherIncidents(p: Provider, main: string): (Incident & { key: string })[] {
-  return Object.entries(p.incidents)
-    .filter(([k]) => k !== main)
-    .map(([key, i]) => ({ key, ...i }));
+export interface AdvisoryEntry {
+  advisory: Advisory;
+  entry?: Incident;
 }
 
 export class Table {
   constructor(
-    readonly incident: string,
-    readonly incident_cves: string[],
+    readonly advisories: readonly Advisory[],
     readonly updated_at: string,
     readonly providers: Provider[],
   ) {}
 
   get(id: string): Provider | undefined {
     return this.providers.find((p) => p.id === id);
+  }
+
+  advisory(id: string): Advisory | undefined {
+    return this.advisories.find((a) => a.id === id);
+  }
+
+  siteCheck(check: SiteCheck): Advisory | undefined {
+    return this.advisories.find((a) => a.site_check === check);
+  }
+
+  advisoriesOf(p: Provider): AdvisoryEntry[] {
+    return this.advisories
+      .filter((a) => a.kinds.includes(p.kind) || Object.hasOwn(p.incidents, a.id))
+      .map((advisory) => {
+        const entry = incidentOf(p, advisory.id);
+        return entry ? { advisory, entry } : { advisory };
+      });
+  }
+
+  ownIncidents(p: Provider): (Incident & { key: string })[] {
+    return Object.entries(p.incidents)
+      .filter(([k]) => !this.advisory(k))
+      .map(([key, i]) => ({ key, ...i }));
   }
 
   byAsn(asn: number, asName: string, prefer?: ReadonlySet<string>, ptr?: string): Provider | undefined {
@@ -119,7 +141,7 @@ export class Table {
   }
 }
 
-export function loadProviders(yamlText: string): Table {
+export function loadProviders(yamlText: string, advisories: readonly Advisory[] = []): Table {
   let raw: unknown;
   try {
     raw = load(yamlText);
@@ -169,7 +191,7 @@ export function loadProviders(yamlText: string): Table {
       incidents,
     };
   });
-  return new Table(str(doc.incident), strs(doc.incident_cves, "incident_cves"), str(doc.updated_at), providers);
+  return new Table(advisories, str(doc.updated_at), providers);
 }
 
 function incident(v: Record<string, unknown>, id: string, key: string): Incident {

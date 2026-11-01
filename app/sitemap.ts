@@ -16,7 +16,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { path: "" },
     { path: "/providers", lastModified: table.updated_at },
     ...table.providers.map((p) => ({ path: `/providers/${p.id}`, lastModified: table.updated_at })),
-    { path: `/guide/${table.incident}` },
+    { path: "/advisories", lastModified: table.updated_at },
+    ...table.advisories.filter((a) => a.guide).map((a) => ({ path: `/guide/${a.id}` })),
     { path: "/tools" },
     { path: "/about" },
   ];

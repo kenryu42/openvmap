@@ -3,14 +3,13 @@ import Link from "next/link";
 import { ArrowLeftIcon } from "@phosphor-icons/react/ssr";
 import { RootLayout } from "./_components/root";
 import { Mark, Site } from "./_components/site";
-import { table } from "@/lib/table";
 
 export const metadata: Metadata = { title: "Page not found | OpenVMap" };
 
 export default function GlobalNotFound() {
   return (
     <RootLayout lang="en">
-      <Site lang="en" alt="/ja" incident={table.incident}>
+      <Site lang="en" alt="/ja">
         <section className="mx-auto flex max-w-[680px] flex-col items-start py-24">
           <Mark className="size-12" />
           <p className="mt-8 font-mono text-sm text-accent">404</p>

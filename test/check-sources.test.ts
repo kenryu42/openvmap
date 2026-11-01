@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { loadProviders } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 import {
   accept,
   acceptDumped,
@@ -18,8 +19,8 @@ import {
   type Seen,
 } from "@/scripts/check-sources";
 
-const table = loadProviders(`incident: php2shell
-updated_at: "2026-10-24"
+const table = loadProviders(
+  `updated_at: "2026-10-24"
 providers:
   - id: alpha
     name: Alpha Hosting
@@ -57,7 +58,9 @@ providers:
         summary: s
         summary_en: s
         verified_at: "2026-10-24"
-`);
+`,
+  advisories,
+);
 const sources = sourcesOf(table);
 
 const urlOf = (input: string | URL | Request) => (input instanceof Request ? input.url : input.toString());
@@ -80,7 +83,7 @@ async function baseline(): Promise<Hashes> {
 
 describe("check-sources", () => {
   it("watches every cited page of the shipped table, and has an accepted version for each", () => {
-    const shipped = sourcesOf(loadProviders(readFileSync("data/providers.yaml", "utf8")));
+    const shipped = sourcesOf(loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories));
     const accepted = JSON.parse(readFileSync("data/source-hashes.json", "utf8")) as Hashes;
     expect(shipped.length).toBeGreaterThan(20);
     expect(shipped.map((s) => s.url).sort()).toEqual(Object.keys(accepted).sort());
@@ -337,7 +340,7 @@ describe("check-sources: pages that refuse the watcher's network", () => {
 
 describe("check-sources: provider news lists", () => {
   it("watches the news list of every hosting provider in the shipped table that has one, and has a baseline for each", () => {
-    const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"));
+    const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories);
     const seen = JSON.parse(readFileSync("data/news-seen.json", "utf8")) as Seen;
     const pages = newsOf(shipped);
     expect(pages.length).toBeGreaterThan(20);

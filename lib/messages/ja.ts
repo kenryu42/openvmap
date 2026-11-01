@@ -1,3 +1,4 @@
+import type { FixState } from "../advisory";
 import type { Confidence, Kind, Status } from "../provider";
 import type { Verdict, VersionStatus } from "../phpsig";
 import type { Cost, Runs } from "../tools";
@@ -9,7 +10,7 @@ export const ja = {
   checkedAt: "確認日時:",
   secProviders: "このサイトを支えている事業者（公開DNS・経路情報・証明書から）",
   secPHP: "PHP の痕跡（トップページへの通常アクセス1回から）",
-  secStatus: (incident: string) => `事業者の ${incident} 対応状況とセキュリティ事故（このツールに登録済みの情報）`,
+  secStatus: "各事業者の発表（このツールに登録済みの情報）",
   secActions: "今やること",
   secTemplate: "問い合わせテンプレート（制作会社・ホスティング事業者向け）",
   noHosts: "Webホストを解決できませんでした。",
@@ -36,16 +37,7 @@ export const ja = {
   actHostingUnlisted: (name: string, incident: string) =>
     `【${name}】がWebサーバーを運用しています。この事業者の ${incident} 対応状況はこのツールに未登録です。事業者の公式お知らせを確認するか、下のテンプレートで問い合わせてください。`,
   actPatched: (name: string, conf: string, date: string, action: string) => `【${name}】は対応完了を発表しています（${conf}、${date}）。${action}`,
-  actInProgress: (name: string, action: string) =>
-    `【${name}】は対応中です。完了の公式発表を確認するまで、IPAの案内に沿ってアクセス制限や一時的な公開停止を検討してください。${action}`,
   actUnknown: (name: string, action: string) => `【${name}】の対応状況は確認できていません。${action} 下のテンプレートで問い合わせてください。`,
-  actSaas: (name: string, action: string) => `【${name}】がサイトを自社の基盤で運用しています。利用者がサーバーのPHPを管理する構成ではありません。${action}`,
-  actPaas: (name: string) =>
-    `【${name}】はアプリ実行基盤（PaaS）です。PHPを使う場合は、利用者（または制作会社）がコンテナのイメージやビルド設定でPHPのバージョンを管理します。制作会社に、PHPを使っているかと、修正版に更新して再デプロイしたかを確認してください。`,
-  actCloud: (name: string) =>
-    `【${name}】はIaaSです。PHPはあなた（または制作会社）が管理するサーバーで動いています。サーバー管理者にOSパッケージまたはPHPの更新を依頼してください。内部からの確認には Vuls などのパッケージ検査ツールが使えます。`,
-  actCDN: (name: string) =>
-    `Webは ${name}（CDN）経由で配信されています。実際にPHPを動かしているサーバーは外部から見えません。制作会社または担当者に、オリジンサーバーのホスティング先とPHPの更新状況を確認してください。`,
   actDistrustedRoot: (host: string, root: string) =>
     `警告: ${host} の証明書は「${root}」につながっています。このルート証明書は Firefox などで信頼されなくなっており、閲覧者のブラウザでエラーになります。至急、別の認証局の証明書に入れ替えてください。`,
   actCaIncident: (name: string, title: string, status: string, action: string) =>
@@ -54,50 +46,35 @@ export const ja = {
     `【${name}】は「${title}」を発表しています（${status}）。このサイトや関連サービスを ${name} で動かしている場合: ${action}`,
   actUnmatched: (list: string) =>
     `Webサーバーのネットワークはこのツールのリストにありません: ${list}。この名称の事業者（またはサーバー管理者）に問い合わせてください。`,
-  actHTTPFailed: (err: string) => `トップページを取得できなかったため、PHPの判定は行っていません（${err}）。`,
-  actHTTPStatus: (status: number) =>
-    `トップページは HTTP ${status} を返したため、PHPの判定は行っていません。CDNやファイアウォールのエラー応答は、サイトを動かしているサーバーの構成を表しません。`,
-  actPHPLikely: (ev: string) => `トップページの応答からPHPの利用が強く示唆されます（${ev}）。このサイトは今回の脆弱性の対象です。`,
-  actPHPPossible: (ev: string) => `トップページにPHPを使っている可能性を示す弱い根拠があります（${ev}）。制作会社に確認してください。`,
-  actPHPUnlikely:
-    "トップページは非PHP構成に見えます。ただし、管理画面・問い合わせフォーム・サブドメインでPHPを使っている場合があるので、制作会社に確認してください。",
-  actPHPNone: "トップページからPHPの痕跡は見つかりませんでした。外部からは見えない場合があるため、制作会社に「PHPを使っているか」を確認してください。",
-  actVersionFixed: (v: string) => `応答ヘッダのPHPバージョン ${v} は修正版以上です。`,
-  actVersionBelow: (v: string, fixed: string) =>
-    `応答ヘッダのPHPバージョン ${v} は修正版（${fixed}）より古い表示です。ただし事業者やディストリビューションはバージョン番号を変えずに修正を適用することがあるため、これだけでは未修正とは断定できません。事業者に確認してください。`,
-  actVersionUnfixed: (v: string) =>
-    `応答ヘッダのPHPバージョン ${v} には PHP 公式の修正版がありません。ホスティング事業者の独自修正の有無を確認し、サポート対象の 8.2 以上への移行を計画してください。古いPHPで作られたサイトは、移行にフレームワークやライブラリの更新と動作確認（テスト）が必要になり、時間がかかることがあります。制作会社に作業の範囲と期間を確認し、移行が終わるまでの間は、IPAの案内に沿ってアクセス制限や一時的な公開停止も検討してください。利用者を守るための公開停止は、正しい判断になり得ます。`,
-  actLongCookie:
-    "警告: 異常に長い PHPSESSID Cookie が返されました。JPCERT/CC は php2shell の侵害痕跡の一つとして挙げています。至急、サーバー管理者またはホスティング事業者に相談してください。",
-  actOnlyFix:
-    "修正方法は PHP を修正版（8.5.12 / 8.4.27 / 8.3.36 / 8.2.35）または事業者の修正済みビルドに更新することだけです。「AI脆弱性診断」などの外部診断サービスはサーバーのPHPを更新しません。見積もりが届いても、まず上の確認を済ませてください。",
-  actRefs: (ipa: string, jpcert: string) => `参考: IPA 注意喚起 ${ipa} / JPCERT/CC 注意喚起 ${jpcert}`,
-
-  template: (vendor: string, domain: string, ipa: string, jpcert: string) => `件名: PHPの脆弱性（CVE-2026-109618 / CVE-2026-109619）への対応状況のご確認
-
-${vendor} ご担当者様
-
-お世話になっております。
-2026年10月21日に公開されたPHPの脆弱性（CVE-2026-109618、CVE-2026-109619、通称 php2shell）について、
-弊社サイト（${domain}）に関する以下の点をご確認いただけますでしょうか。
-
-1. 弊社サイトが稼働しているPHPのバージョン
-2. 修正版（8.5.12 / 8.4.27 / 8.3.36 / 8.2.35）または同等の修正パッチの適用状況。
-   未適用の場合は、適用予定日時
-3. PHP 8.1 以前で稼働している場合、サポート対象バージョンへの移行の要否・手順・費用
-4. 10月17日以降の不審なアクセスや侵害の痕跡の有無
-   （JPCERT/CC は、異常に長い PHPSESSID Cookie などを確認観点として挙げています）
-5. 更新作業を実際に担当する会社（再委託先を含めて）と、弊社側の窓口
-6. 更新が終わるまでの間の対策（アクセス制限や一時的な公開停止など）の要否
-
-参考:
-- IPA 注意喚起: ${ipa}
-- JPCERT/CC 注意喚起: ${jpcert}
-
-お手数をおかけしますが、よろしくお願いいたします。`,
+  php: {
+    actInProgress: (name: string, action: string) =>
+      `【${name}】は対応中です。完了の公式発表を確認するまで、IPAの案内に沿ってアクセス制限や一時的な公開停止を検討してください。${action}`,
+    actSaas: (name: string, action: string) => `【${name}】がサイトを自社の基盤で運用しています。利用者がサーバーのPHPを管理する構成ではありません。${action}`,
+    actPaas: (name: string) =>
+      `【${name}】はアプリ実行基盤（PaaS）です。PHPを使う場合は、利用者（または制作会社）がコンテナのイメージやビルド設定でPHPのバージョンを管理します。制作会社に、PHPを使っているかと、修正版に更新して再デプロイしたかを確認してください。`,
+    actCloud: (name: string) =>
+      `【${name}】はIaaSです。PHPはあなた（または制作会社）が管理するサーバーで動いています。サーバー管理者にOSパッケージまたはPHPの更新を依頼してください。内部からの確認には Vuls などのパッケージ検査ツールが使えます。`,
+    actCDN: (name: string) =>
+      `Webは ${name}（CDN）経由で配信されています。実際にPHPを動かしているサーバーは外部から見えません。制作会社または担当者に、オリジンサーバーのホスティング先とPHPの更新状況を確認してください。`,
+    actHTTPFailed: (err: string) => `トップページを取得できなかったため、PHPの判定は行っていません（${err}）。`,
+    actHTTPStatus: (status: number) =>
+      `トップページは HTTP ${status} を返したため、PHPの判定は行っていません。CDNやファイアウォールのエラー応答は、サイトを動かしているサーバーの構成を表しません。`,
+    actPHPLikely: (ev: string) => `トップページの応答からPHPの利用が強く示唆されます（${ev}）。このサイトは今回の脆弱性の対象です。`,
+    actPHPPossible: (ev: string) => `トップページにPHPを使っている可能性を示す弱い根拠があります（${ev}）。制作会社に確認してください。`,
+    actPHPUnlikely:
+      "トップページは非PHP構成に見えます。ただし、管理画面・問い合わせフォーム・サブドメインでPHPを使っている場合があるので、制作会社に確認してください。",
+    actPHPNone: "トップページからPHPの痕跡は見つかりませんでした。外部からは見えない場合があるため、制作会社に「PHPを使っているか」を確認してください。",
+    actVersionFixed: (v: string) => `応答ヘッダのPHPバージョン ${v} は修正版以上です。`,
+    actVersionBelow: (v: string, fixed: string) =>
+      `応答ヘッダのPHPバージョン ${v} は修正版（${fixed}）より古い表示です。ただし事業者やディストリビューションはバージョン番号を変えずに修正を適用することがあるため、これだけでは未修正とは断定できません。事業者に確認してください。`,
+    actVersionUnfixed: (v: string) =>
+      `応答ヘッダのPHPバージョン ${v} には PHP 公式の修正版がありません。ホスティング事業者の独自修正の有無を確認し、サポート対象の 8.2 以上への移行を計画してください。古いPHPで作られたサイトは、移行にフレームワークやライブラリの更新と動作確認（テスト）が必要になり、時間がかかることがあります。制作会社に作業の範囲と期間を確認し、移行が終わるまでの間は、IPAの案内に沿ってアクセス制限や一時的な公開停止も検討してください。利用者を守るための公開停止は、正しい判断になり得ます。`,
+    actLongCookie:
+      "警告: 異常に長い PHPSESSID Cookie が返されました。JPCERT/CC は php2shell の侵害痕跡の一つとして挙げています。至急、サーバー管理者またはホスティング事業者に相談してください。",
+  },
 
   ui: {
-    nav: { home: "チェック", providers: "事業者の対応状況", guide: "対応ガイド", tools: "ツール", about: "このツールについて" },
+    nav: { home: "チェック", providers: "事業者の対応状況", advisories: "アドバイザリー", tools: "ツール", about: "このツールについて" },
     menu: "メニュー",
     skip: "本文へ移動",
     privacy: "プライバシー",
@@ -243,7 +220,10 @@ ${vendor} ご担当者様
     certIssuers: "証明書の発行元（O）に含まれる文字列",
     distrustedRoots: "ブラウザが信頼しなくなったルート証明書",
     asNames: "AS名に含まれる文字列",
-    noIncident: "この事業者は利用者のサーバーで PHP を動かしていないため、対応状況の登録はありません。",
+    noIncident: "このツールで扱っているアドバイザリーはこの種類の事業者を対象にしていないため、対応状況の登録はありません。",
+    noStatement: "発表の記録なし",
+    noStatementAsOf: (date: string) => `${date} の時点で、この事業者の発表は記録されていません。影響があるかどうかを示すものではありません。`,
+    providerAdvisories: "アドバイザリー",
     correction: "訂正を報告する（GitHub）",
     verifiedOn: "確認日:",
     notFound: "見つかりませんでした。",
@@ -251,6 +231,34 @@ ${vendor} ご担当者様
     mapCaption: "1つのドメインの裏にいる事業者",
     steps: ["公開DNS", "経路（AS）", "トップページ", "証明書"],
     exampleDomain: "example.co.jp",
+    advisories: {
+      eyebrow: "アドバイザリー",
+      title: "サイトの持ち主が知っておきたい、いまの脆弱性",
+      intro:
+        "Webサイトを動かすソフトウェアの脆弱性について、開発元の修正、各ディストリビューション・ベンダーの対応、各事業者の発表、ホスティング事業者に聞くことをまとめています。内容はすべてリンク先の出典に基づきます。ここに載っていても、あなたのサイトに影響があるという意味ではありません。",
+      staleNote: (days: number) => `確認から${days}日を超えた情報は灰色で表示します。最新の状況は出典で確認してください。`,
+      contents: "このページの内容",
+      published: "公開日",
+      severity: (version: string, score: string) => `CVSS ${version} ${score}`,
+      upstreamFix: "開発元の修正",
+      fixesTitle: "ディストリビューション・ベンダーの対応",
+      colVendor: "ディストリビューション・ベンダー",
+      colState: "状況",
+      colDetail: "詳細",
+      colChecked: "確認日",
+      fixStateLabels: { patched: "修正済み", testing: "修正をテスト中", none: "修正なし" } satisfies Record<FixState, string>,
+      stopgap: "すぐに更新できないとき",
+      askTitle: "ホスティング事業者に聞くこと",
+      askVendor: "（事業者名）",
+      askDomain: "（ドメイン名）",
+      providersTitle: "各事業者の発表",
+      providersCount: (statements: number, total: number) => `${total}社のうち ${statements}社の発表を記録`,
+      providersNote: (date: string) =>
+        `各事業者が発表した内容だけを、出典とともに載せています。「発表の記録なし」は ${date} の時点で発表が見つかっていないという意味で、その事業者やあなたのサイトに影響があるという意味ではありません。`,
+      colAnnounced: "発表された状況",
+      stale: (days: number) => `確認から${days}日超`,
+      seeAll: "アドバイザリーを見る",
+    },
   },
 
   tools: {

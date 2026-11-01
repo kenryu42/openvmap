@@ -2,7 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { IslandNav, SkipLink } from "./nav";
 import { base, homeHref, messages, otherLang, type Lang } from "@/lib/lang";
+import type { Advisory } from "@/lib/advisory";
 import type { Status } from "@/lib/provider";
+import { pick } from "@/lib/report";
 import { repoUrl, version } from "@/lib/meta";
 
 export function Mark({ className = "" }: { className?: string }) {
@@ -21,7 +23,15 @@ export function guidePath(lang: Lang, incident: string): string {
   return `${base(lang)}/guide/${incident}`;
 }
 
-export function Site({ lang, alt, incident, children, wide = false }: { lang: Lang; alt: string; incident: string; children: ReactNode; wide?: boolean }) {
+export function advisoryLabel(a: Advisory, lang: Lang): string {
+  return messages(lang).ui.incidentLabel(pick(lang === "ja", a.title, a.title_en), a.cves);
+}
+
+export function advisoryHref(lang: Lang, id: string): string {
+  return `${base(lang)}/advisories#${id}`;
+}
+
+export function Site({ lang, alt, children, wide = false }: { lang: Lang; alt: string; children: ReactNode; wide?: boolean }) {
   const s = messages(lang).ui;
   const p = base(lang);
   const frame = wide ? "max-w-6xl" : "max-w-5xl";
@@ -38,7 +48,7 @@ export function Site({ lang, alt, incident, children, wide = false }: { lang: La
         items={[
           { href: homeHref(lang), label: s.nav.home },
           { href: `${p}/providers`, label: s.nav.providers },
-          { href: guidePath(lang, incident), label: s.nav.guide },
+          { href: `${p}/advisories`, label: s.nav.advisories },
           { href: `${p}/tools`, label: s.nav.tools },
           { href: `${p}/about`, label: s.nav.about },
         ]}

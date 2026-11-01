@@ -56,7 +56,7 @@ export async function runCheck(domain: string, o: CheckOptions): Promise<Report>
   const r: Report = {
     tool: "OpenVMap",
     version: o.version,
-    incident: o.table.incident,
+    advisories: o.table.advisories.map((a) => a.id),
     domain: normalizeDomain(domain),
     checked_at: rfc3339((o.now ?? (() => new Date()))()),
     ns: [],
@@ -79,12 +79,12 @@ export async function runCheck(domain: string, o: CheckOptions): Promise<Report>
   for (const ns of zone.ns) {
     const p = o.table.byNs(ns);
     r.ns.push({ host: ns, provider_id: p?.id });
-    addProvider(r, p, "ns", "NS " + ns);
+    addProvider(r, o.table, p, "ns", "NS " + ns);
   }
   for (const mx of zone.mx) {
     const p = o.table.byMx(mx);
     r.mx.push({ host: mx, provider_id: p?.id });
-    addProvider(r, p, "mx", "MX " + mx);
+    addProvider(r, o.table, p, "mx", "MX " + mx);
   }
 
   const asns = await lookupAll(resolver, zone, o.table);
@@ -94,7 +94,7 @@ export async function runCheck(domain: string, o: CheckOptions): Promise<Report>
     if (h.cname) {
       const p = o.table.byCname(h.cname);
       hi.cname_provider_id = p?.id;
-      addProvider(r, p, "cname", `${h.name} CNAME ${h.cname}`);
+      addProvider(r, o.table, p, "cname", `${h.name} CNAME ${h.cname}`);
     }
     for (const ip of h.ips) {
       const info: IpInfo = { ip };
@@ -112,7 +112,7 @@ export async function runCheck(domain: string, o: CheckOptions): Promise<Report>
         if (res.ptr) info.ptr = res.ptr;
         const p: Provider | undefined = o.table.byAsn(res.asn, res.as_name, prefer, res.ptr);
         info.provider_id = p?.id;
-        addProvider(r, p, "web", `${h.name} ${ip} AS${res.asn} ${res.as_name}${res.ptr ? ` PTR ${res.ptr}` : ""}`);
+        addProvider(r, o.table, p, "web", `${h.name} ${ip} AS${res.asn} ${res.as_name}${res.ptr ? ` PTR ${res.ptr}` : ""}`);
       }
       hi.ips.push(info);
     }
@@ -121,7 +121,7 @@ export async function runCheck(domain: string, o: CheckOptions): Promise<Report>
   sortProviders(r);
 
   if (warnings.length > 0) r.warnings = warnings;
-  finalize(r, o.lang);
+  finalize(r, o.lang, o.table);
   return r;
 }
 

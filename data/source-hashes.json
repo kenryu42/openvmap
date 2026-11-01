@@ -39,5 +39,6 @@
   "https://status.linode.com/incidents/wq8zlhk736fk": "39f484713535f5e6a46da6de01aca626fed18b8319c95a362b08f3ce01a5aff8",
   "https://status.hetzner.com/incident/f4144d55-38c3-48d1-8664-7a3429355cd7": "b9f17c196c21578fb1f045b1363ab3be00fd604b99058b46ad20fe0f262bb1f9",
   "https://www.siteground.com/blog/critical-php-vulnerabilities-october-2026": "83bb8296e5ea470170c367732050adcb2fcd85f7781142b3e5e7637b3625714d",
+  "https://www.siteground.com/blog/linux-kernel-tcp-vulnerability-cve-2026-98432": "2205cc46fa18739ecbde8c69014a771fa558b12b0cd3d8c725bb28ac02cc6c2c",
   "https://emudhra.com/en/post/certificate-security-incident": "b8dcde1696d2b931c7ff6beef7710255f915a26bafdc84500439fc2a0d62ca3f"
 }

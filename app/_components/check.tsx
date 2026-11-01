@@ -8,6 +8,7 @@ import { runCheck, type PageResult } from "@/lib/check";
 import { parseDomain } from "@/lib/dns";
 import { dohResolver } from "@/lib/doh";
 import { version } from "@/lib/meta";
+import type { Advisory } from "@/lib/advisory";
 import { Table, type Provider } from "@/lib/provider";
 import { base, homeHref, messages, otherLang, type Lang } from "@/lib/lang";
 import { addPage, type Report } from "@/lib/report";
@@ -110,19 +111,17 @@ function fragment(): string {
 
 export function CheckView({
   providers,
-  incident,
-  incidentCves,
+  advisories,
   updatedAt,
   lang,
 }: {
   providers: Provider[];
-  incident: string;
-  incidentCves: string[];
+  advisories: readonly Advisory[];
   updatedAt: string;
   lang: Lang;
 }) {
   const s = messages(lang).ui;
-  const table = useMemo(() => new Table(incident, incidentCves, updatedAt, providers), [incident, incidentCves, updatedAt, providers]);
+  const table = useMemo(() => new Table(advisories, updatedAt, providers), [advisories, updatedAt, providers]);
   const [view, setView] = useState<View>({ kind: "start" });
   const latest = useRef(0);
 
@@ -155,7 +154,7 @@ export function CheckView({
   const domain = view.kind === "checking" ? view.domain : view.kind === "report" ? view.report.domain : "";
   const alt = `${base(otherLang(lang))}/check${domain ? `#${domain}` : ""}`;
   return (
-    <Site lang={lang} alt={alt} incident={incident} wide>
+    <Site lang={lang} alt={alt} wide>
       {(view.kind === "start" || view.kind === "checking") && <Checking domain={view.kind === "checking" ? view.domain : ""} lang={lang} />}
       {(view.kind === "none" || view.kind === "invalid") && (
         <div className="rise max-w-2xl">

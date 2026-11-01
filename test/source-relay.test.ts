@@ -1,9 +1,10 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadProviders } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 import { citedUrls, handleSource } from "@/worker/source";
 
-const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"));
+const shipped = loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories);
 const allowed = citedUrls(shipped);
 const conoha = "https://www.conoha.jp/wing/news/?ap=2015054909";
 

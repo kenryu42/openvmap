@@ -1,13 +1,10 @@
+import { fillAsk, type Advisory } from "./advisory";
 import type { PageResult } from "./check";
 import { messages, type Lang } from "./lang";
 import type { Messages } from "./messages/ja";
 import { fixedFor, type PhpResult } from "./phpsig";
-import { incidentOf, otherIncidents, type Incident, type Kind, type Provider, type Table } from "./provider";
+import type { Incident, Kind, Provider, Table } from "./provider";
 import type { TlsInfo } from "./tls";
-
-export { phpAdvisory } from "./meta";
-export const ipaAlert = "https://www.ipa.go.jp/security/security-alert/2026/alert20261022.html";
-const jpcertAlert = "https://www.jpcert.or.jp/at/2026/at260033.html";
 
 export type Role = "web" | "cname" | "http" | "ns" | "mx" | "tls";
 
@@ -42,8 +39,13 @@ interface ProviderHit {
   evidence: string[];
   notes?: string;
   notes_ja?: string;
-  incident?: Incident;
+  advisories: ProviderAdvisory[];
   other_incidents?: (Incident & { key: string })[];
+}
+
+export interface ProviderAdvisory {
+  id: string;
+  entry?: Incident;
 }
 
 export interface HttpInfo {
@@ -57,7 +59,7 @@ export interface HttpInfo {
 export interface Report {
   tool: string;
   version: string;
-  incident: string;
+  advisories: string[];
   domain: string;
   checked_at: string;
   ns: NameInfo[];
@@ -72,7 +74,7 @@ export interface Report {
   message_template: string;
 }
 
-export function addProvider(r: Report, p: Provider | undefined, role: Role, evidence: string): void {
+export function addProvider(r: Report, table: Table, p: Provider | undefined, role: Role, evidence: string): void {
   if (!p) return;
   const h = r.providers.find((x) => x.id === p.id);
   if (h) {
@@ -80,8 +82,7 @@ export function addProvider(r: Report, p: Provider | undefined, role: Role, evid
     if (!h.evidence.includes(evidence)) h.evidence.push(evidence);
     return;
   }
-  const inc = incidentOf(p, r.incident);
-  const others = otherIncidents(p, r.incident);
+  const others = table.ownIncidents(p);
   r.providers.push({
     id: p.id,
     name: p.name,
@@ -91,7 +92,7 @@ export function addProvider(r: Report, p: Provider | undefined, role: Role, evid
     evidence: [evidence],
     ...(p.notes && { notes: p.notes }),
     ...(p.notes_ja && { notes_ja: p.notes_ja }),
-    ...(inc && { incident: inc }),
+    advisories: table.advisoriesOf(p).map((a) => (a.entry ? { id: a.advisory.id, entry: a.entry } : { id: a.advisory.id })),
     ...(others.length > 0 && { other_incidents: others }),
   });
 }
@@ -128,7 +129,7 @@ export interface IncidentCheck {
 export function incidentChecks(r: Report, table: Table): IncidentCheck[] {
   const out: IncidentCheck[] = [];
   for (const p of table.providers) {
-    for (const incident of otherIncidents(p, table.incident)) {
+    for (const incident of table.ownIncidents(p)) {
       if (r.providers.some((h) => h.id === p.id)) {
         out.push({ provider: p, incident, result: "found" });
         continue;
@@ -147,14 +148,14 @@ export function addPage(r: Report, page: PageResult, lang: Lang, table: Table): 
   const at = r.http?.final_url ?? r.http?.url;
   const host = at ? new URL(at).host : r.domain;
   for (const p of table.byHeaders(names)) {
-    for (const h of p.http_headers.filter((x) => names.includes(x))) addProvider(r, p, "http", `${host} response header ${h}`);
+    for (const h of p.http_headers.filter((x) => names.includes(x))) addProvider(r, table, p, "http", `${host} response header ${h}`);
   }
   if (page.tls) {
     r.tls = { ...page.tls };
     const leaf = page.tls.chain?.[0];
     const ca = leaf ? table.byCertIssuer(leaf.issuer_o ?? "") : undefined;
     if (ca && leaf) {
-      addProvider(r, ca, "tls", `${page.tls.host} certificate issued by ${leaf.issuer_cn ?? ""} (${leaf.issuer_o ?? ""})`);
+      addProvider(r, table, ca, "tls", `${page.tls.host} certificate issued by ${leaf.issuer_cn ?? ""} (${leaf.issuer_o ?? ""})`);
       const names = page.tls.chain!.flatMap((c) => [c.subject_cn, c.issuer_cn]);
       const root = ca.distrusted_roots.find((n) => names.includes(n));
       if (root) r.tls.distrusted_root = root;
@@ -162,18 +163,24 @@ export function addPage(r: Report, page: PageResult, lang: Lang, table: Table): 
     if (page.tls.error) (r.warnings ??= []).push(`TLS ${page.tls.host}: ${page.tls.error}`);
   }
   sortProviders(r);
-  finalize(r, lang);
+  finalize(r, lang, table);
 }
 
-export function finalize(r: Report, lang: Lang): void {
+export function finalize(r: Report, lang: Lang, table: Table): void {
   const s = messages(lang);
-  r.actions = buildActions(r, s);
-  r.message_template = buildMessage(r, s);
+  const site = table.siteCheck("php");
+  r.actions = buildActions(r, s, site);
+  r.message_template = buildMessage(r, s, site ?? table.advisories[0]);
 }
 
-function buildActions(r: Report, s: Messages): string[] {
+function entryFor(h: ProviderHit, a: Advisory | undefined): Incident | undefined {
+  return a && h.advisories.find((x) => x.id === a.id)?.entry;
+}
+
+function buildActions(r: Report, s: Messages, site: Advisory | undefined): string[] {
   const out: string[] = [];
   const ja = s.lang === "ja";
+  const p = s.php;
   const web = webProviders(r);
   const hosting = web.filter((h) => h.kind === "hosting" || h.kind === "saas");
   const paas = web.filter((h) => h.kind === "paas");
@@ -182,31 +189,34 @@ function buildActions(r: Report, s: Messages): string[] {
   const cdn = web.filter((h) => h.kind === "cdn");
 
   if (r.hosts.length === 0) out.push(s.actNoHosts);
-  for (const h of hosting) {
+  for (const h of site ? hosting : []) {
     const name = pick(ja, h.name_ja, h.name);
-    if (!h.incident) {
-      out.push(s.actHostingUnlisted(name, r.incident));
+    const inc = entryFor(h, site);
+    if (!inc) {
+      out.push(s.actHostingUnlisted(name, pick(ja, site?.title, site?.title_en)));
       continue;
     }
-    const ca = pick(ja, h.incident.customer_action, h.incident.customer_action_en);
-    switch (h.incident.status) {
+    const ca = pick(ja, inc.customer_action, inc.customer_action_en);
+    switch (inc.status) {
       case "n/a":
-        out.push(s.actSaas(name, ca));
+        out.push(p.actSaas(name, ca));
         break;
       case "patched":
-        out.push(s.actPatched(name, s.confLabels[h.incident.confidence], h.incident.date ?? "", ca));
+        out.push(s.actPatched(name, s.confLabels[inc.confidence], inc.date ?? "", ca));
         break;
       case "in_progress":
-        out.push(s.actInProgress(name, ca));
+        out.push(p.actInProgress(name, ca));
         break;
       default:
         out.push(s.actUnknown(name, ca));
     }
   }
-  for (const h of paas) out.push(s.actPaas(pick(ja, h.name_ja, h.name)));
-  for (const h of cloud) out.push(s.actCloud(pick(ja, h.name_ja, h.name)));
-  if (cdn.length > 0 && hosting.length === 0 && paas.length === 0 && cloud.length === 0) {
-    out.push(s.actCDN(pick(ja, cdn[0].name_ja, cdn[0].name)));
+  if (site) {
+    for (const h of paas) out.push(p.actPaas(pick(ja, h.name_ja, h.name)));
+    for (const h of cloud) out.push(p.actCloud(pick(ja, h.name_ja, h.name)));
+    if (cdn.length > 0 && hosting.length === 0 && paas.length === 0 && cloud.length === 0) {
+      out.push(p.actCDN(pick(ja, cdn[0].name_ja, cdn[0].name)));
+    }
   }
   if (r.tls?.distrusted_root) out.push(s.actDistrustedRoot(r.tls.host, r.tls.distrusted_root));
   for (const h of r.providers) {
@@ -219,8 +229,8 @@ function buildActions(r: Report, s: Messages): string[] {
   if (un.length > 0) out.push(s.actUnmatched(un.join("; ")));
 
   if (r.http && !r.php) {
-    if (r.http.status && r.http.status >= 400) out.push(s.actHTTPStatus(r.http.status));
-    else out.push(s.actHTTPFailed(r.http.error ?? ""));
+    if (r.http.status && r.http.status >= 400) out.push(p.actHTTPStatus(r.http.status));
+    else out.push(p.actHTTPFailed(r.http.error ?? ""));
   } else if (r.php) {
     const evs = r.php.signals
       .filter((sig) => sig.weight > 0)
@@ -228,43 +238,44 @@ function buildActions(r: Report, s: Messages): string[] {
       .join(", ");
     switch (r.php.verdict) {
       case "likely":
-        out.push(s.actPHPLikely(evs));
+        out.push(p.actPHPLikely(evs));
         break;
       case "possible":
-        out.push(s.actPHPPossible(evs));
+        out.push(p.actPHPPossible(evs));
         break;
       case "unlikely":
-        out.push(s.actPHPUnlikely);
+        out.push(p.actPHPUnlikely);
         break;
       default:
-        out.push(s.actPHPNone);
+        out.push(p.actPHPNone);
     }
     const v = r.php.php_version;
     if (v) {
       switch (r.php.version_status) {
         case "fixed_or_later":
-          out.push(s.actVersionFixed(v));
+          out.push(p.actVersionFixed(v));
           break;
         case "below_fixed_release":
-          out.push(s.actVersionBelow(v, fixedFor(v)));
+          out.push(p.actVersionBelow(v, fixedFor(v)));
           break;
         case "no_official_fix":
-          out.push(s.actVersionUnfixed(v));
+          out.push(p.actVersionUnfixed(v));
           break;
       }
     }
-    if (r.php.long_session_cookie) out.push(s.actLongCookie);
+    if (r.php.long_session_cookie) out.push(p.actLongCookie);
   }
-  out.push(s.actOnlyFix, s.actRefs(ipaAlert, jpcertAlert));
+  if (site) out.push(pick(ja, site.fix_note, site.fix_note_en), pick(ja, site.references, site.references_en));
   return out;
 }
 
-function buildMessage(r: Report, s: Messages): string {
+function buildMessage(r: Report, s: Messages, advisory: Advisory | undefined): string {
+  if (!advisory) return "";
   const ja = s.lang === "ja";
   const web = webProviders(r);
   const vendor = web.find((h) => h.kind === "hosting" || h.kind === "saas") ?? web.find((h) => h.kind === "paas" || h.kind === "cloud");
   const name = vendor ? pick(ja, vendor.name_ja, vendor.name) : s.vendorPlaceholder;
-  return s.template(name, r.domain, ipaAlert, jpcertAlert).trim();
+  return fillAsk(pick(ja, advisory.ask, advisory.ask_en), name, r.domain);
 }
 
 export function pick(ja: boolean, jaText: string | undefined, enText: string | undefined): string {
@@ -279,7 +290,7 @@ export function reportJson(r: Report): Record<string, unknown> {
   return {
     tool: r.tool,
     version: r.version,
-    incident: r.incident,
+    advisories: r.advisories,
     domain: r.domain,
     checked_at: r.checked_at,
     ns: r.ns.map((n) => withoutEmpty({ host: n.host, provider_id: n.provider_id })),
@@ -296,7 +307,7 @@ export function reportJson(r: Report): Record<string, unknown> {
       roles: h.roles,
       evidence: h.evidence,
       ...withoutEmpty({ notes: h.notes, notes_ja: h.notes_ja }),
-      ...(h.incident && { incident: incidentJson(h.incident) }),
+      ...(h.advisories.length > 0 && { advisories: h.advisories.map((a) => ({ id: a.id, ...(a.entry && incidentJson(a.entry)) })) }),
       ...(h.other_incidents?.length && { other_incidents: h.other_incidents.map((i) => ({ key: i.key, ...incidentJson(i) })) }),
     })),
     ...(r.http && { http: withoutEmpty({ url: r.http.url, final_url: r.http.final_url, status: r.http.status, server: r.http.server, error: r.http.error }) }),

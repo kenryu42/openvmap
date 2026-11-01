@@ -7,6 +7,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { checkPage, runCheck, type PageResponse, type Transport } from "@/lib/check";
 import type { Resolver } from "@/lib/dns";
 import { loadProviders } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 import { addPage } from "@/lib/report";
 import { httpGet } from "@/lib/http1";
 import { isCloudflareAddress, isPublicAddress, safeTransport, type PinnedRequest } from "@/lib/safety";
@@ -254,7 +255,7 @@ describe("safeTransport", () => {
 });
 
 describe("redirects and candidates", () => {
-  const table = loadProviders("incident: php2shell\nproviders: []\n");
+  const table = loadProviders("providers: []\n", advisories);
   const resolver: Resolver = {
     resolve4: (h) => Promise.resolve(h === "site.test" || h === "www.site.test" ? ["104.16.132.229"] : []),
     resolve6: () => Promise.resolve([]),

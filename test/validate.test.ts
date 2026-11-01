@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { loadProviders } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 import { validateTable } from "@/scripts/validate-providers";
 
 const inc = (extra: string) => `
@@ -11,11 +12,11 @@ const inc = (extra: string) => `
         verified_at: "2026-10-24"
 ${extra}`;
 
-const table = (body: string, updated = '"2026-10-24"') => loadProviders(`incident: php2shell\nupdated_at: ${updated}\nproviders:\n${body}`);
+const table = (body: string, updated = '"2026-10-24"') => loadProviders(`updated_at: ${updated}\nproviders:\n${body}`, advisories);
 
 describe("validateTable", () => {
   it("accepts the shipped table", () => {
-    expect(validateTable(loadProviders(readFileSync("data/providers.yaml", "utf8")))).toEqual([]);
+    expect(validateTable(loadProviders(readFileSync("data/providers.yaml", "utf8"), advisories))).toEqual([]);
   });
 
   it.each([

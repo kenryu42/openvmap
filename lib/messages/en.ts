@@ -1,5 +1,4 @@
 import type { Messages } from "./ja";
-import { phpAdvisory } from "../meta";
 
 export const en: Messages = {
   lang: "en",
@@ -8,7 +7,7 @@ export const en: Messages = {
   checkedAt: "Checked at:",
   secProviders: "Providers behind this site (from public DNS, routing data and the certificate)",
   secPHP: "PHP signals (from one ordinary request to the front page)",
-  secStatus: (incident: string) => `Provider ${incident} status and security incidents (as recorded in this tool)`,
+  secStatus: "What each provider has announced (as recorded in this tool)",
   secActions: "What to do now",
   secTemplate: "Message template (for your web agency or hosting provider)",
   noHosts: "No web host could be resolved.",
@@ -35,63 +34,41 @@ export const en: Messages = {
   actHostingUnlisted: (name, incident) =>
     `${name} runs the web server. Its ${incident} status is not recorded in this tool. Check the provider's official notice or ask using the template below.`,
   actPatched: (name, conf, date, action) => `${name} reports the fix as complete (${conf}, ${date}). ${action}`,
-  actInProgress: (name, action) =>
-    `${name} is still patching. Until the official completion notice, consider restricting access or taking the site offline for a while. ${action}`,
   actUnknown: (name, action) => `${name}'s status could not be confirmed. ${action} Ask using the template below.`,
-  actSaas: (name, action) => `${name} runs the site on its own platform; there is no server PHP for you to manage. ${action}`,
-  actPaas: (name) =>
-    `${name} is an application platform (PaaS). If the site uses PHP, you (or your agency) control the PHP version through the container image or build settings. Ask your agency whether the site uses PHP and whether it has been updated to a fixed release and redeployed.`,
-  actCloud: (name) =>
-    `${name} is IaaS: PHP runs on a server you or your agency manage. Ask the server administrator to update PHP or the OS packages. Vuls or a similar package scanner can confirm from inside.`,
-  actCDN: (name) =>
-    `The site is served through ${name} (CDN). The server that actually runs PHP is not visible from outside. Ask your agency or administrator where the origin is hosted and whether PHP is updated.`,
   actDistrustedRoot: (host, root) =>
     `Warning: the certificate of ${host} chains to "${root}". Firefox and others no longer trust that root, so visitors' browsers show an error. Replace it with a certificate from another CA now.`,
   actCaIncident: (name, title, status, action) => `This site's certificate was issued by ${name}, which has announced "${title}" (${status}). ${action}`,
   actOtherIncident: (name, title, status, action) =>
     `${name} has announced "${title}" (${status}). If this site or a related service runs on ${name}: ${action}`,
   actUnmatched: (list) => `The web server's network is not in this tool's list: ${list}. Ask that operator (or your server administrator).`,
-  actHTTPFailed: (err) => `The front page could not be fetched, so no PHP check was made (${err}).`,
-  actHTTPStatus: (status) =>
-    `The front page answered HTTP ${status}, so no PHP check was made. An error page from a CDN or firewall says nothing about the server that runs the site.`,
-  actPHPLikely: (ev) => `The front page response strongly indicates PHP (${ev}). This site is in scope for the vulnerability.`,
-  actPHPPossible: (ev) => `The front page has weak evidence of PHP (${ev}). Confirm with your agency.`,
-  actPHPUnlikely: "The front page looks like a non-PHP stack. Admin panels, contact forms and subdomains may still use PHP; confirm with your agency.",
-  actPHPNone: "No PHP signals on the front page. They may be hidden from outside, so ask your agency whether the site uses PHP.",
-  actVersionFixed: (v) => `The PHP version in the response header, ${v}, is at or above the fixed release.`,
-  actVersionBelow: (v, fixed) =>
-    `The PHP version in the response header, ${v}, is below the fixed release (${fixed}). Providers and distributions often patch without changing the version string, so this alone does not prove exposure. Confirm with the provider.`,
-  actVersionUnfixed: (v) =>
-    `The PHP version in the response header, ${v}, has no official fix from php.net. Ask the provider whether they applied their own patch, and plan a move to 8.2 or later. A site built on old PHP may need its frameworks and libraries updated and retested before it can move, which takes time. Ask your web agency for the scope and schedule, and until the move is done, consider restricting access or taking the site offline for a while. Taking a site offline to protect its users can be the right call.`,
-  actLongCookie:
-    "Warning: an abnormally long PHPSESSID cookie was returned. JPCERT/CC (Japan's CERT) lists this as a possible indicator of php2shell exploitation. Contact your server administrator or hosting provider now.",
-  actOnlyFix:
-    'The only fix is updating PHP to a fixed release (8.5.12 / 8.4.27 / 8.3.36 / 8.2.35) or the provider\'s patched build. An external "AI vulnerability assessment" does not update the PHP on your server. If you received a quote, finish the checks above first.',
-  actRefs: () => `Reference: the PHP project's security advisory, ${phpAdvisory}`,
-
-  template: (vendor, domain) => `Subject: Status of the PHP vulnerability fix (CVE-2026-109618 / CVE-2026-109619)
-
-To: ${vendor}
-
-Regarding the PHP vulnerabilities published on 2026-10-21 (CVE-2026-109618 and CVE-2026-109619, "php2shell"),
-could you confirm the following for our site (${domain})?
-
-1. The PHP version our site runs on
-2. Whether the fixed release (8.5.12 / 8.4.27 / 8.3.36 / 8.2.35) or an equivalent patch has been applied,
-   and if not, when it will be
-3. If the site runs PHP 8.1 or older: whether a move to a supported version is needed, the steps, and the cost
-4. Any sign of suspicious access or compromise since October 17
-   (JPCERT/CC, Japan's CERT, lists abnormally long PHPSESSID cookies among the indicators)
-5. Which company actually does the update work, including any subcontractor, and who our contact is
-6. Whether anything is needed in the meantime until the update is done (for example, restricting access or taking the site offline for a while)
-
-Reference:
-- PHP security advisory: ${phpAdvisory}
-
-Thank you.`,
+  php: {
+    actInProgress: (name, action) =>
+      `${name} is still patching. Until the official completion notice, consider restricting access or taking the site offline for a while. ${action}`,
+    actSaas: (name, action) => `${name} runs the site on its own platform; there is no server PHP for you to manage. ${action}`,
+    actPaas: (name) =>
+      `${name} is an application platform (PaaS). If the site uses PHP, you (or your agency) control the PHP version through the container image or build settings. Ask your agency whether the site uses PHP and whether it has been updated to a fixed release and redeployed.`,
+    actCloud: (name) =>
+      `${name} is IaaS: PHP runs on a server you or your agency manage. Ask the server administrator to update PHP or the OS packages. Vuls or a similar package scanner can confirm from inside.`,
+    actCDN: (name) =>
+      `The site is served through ${name} (CDN). The server that actually runs PHP is not visible from outside. Ask your agency or administrator where the origin is hosted and whether PHP is updated.`,
+    actHTTPFailed: (err) => `The front page could not be fetched, so no PHP check was made (${err}).`,
+    actHTTPStatus: (status) =>
+      `The front page answered HTTP ${status}, so no PHP check was made. An error page from a CDN or firewall says nothing about the server that runs the site.`,
+    actPHPLikely: (ev) => `The front page response strongly indicates PHP (${ev}). This site is in scope for the vulnerability.`,
+    actPHPPossible: (ev) => `The front page has weak evidence of PHP (${ev}). Confirm with your agency.`,
+    actPHPUnlikely: "The front page looks like a non-PHP stack. Admin panels, contact forms and subdomains may still use PHP; confirm with your agency.",
+    actPHPNone: "No PHP signals on the front page. They may be hidden from outside, so ask your agency whether the site uses PHP.",
+    actVersionFixed: (v) => `The PHP version in the response header, ${v}, is at or above the fixed release.`,
+    actVersionBelow: (v, fixed) =>
+      `The PHP version in the response header, ${v}, is below the fixed release (${fixed}). Providers and distributions often patch without changing the version string, so this alone does not prove exposure. Confirm with the provider.`,
+    actVersionUnfixed: (v) =>
+      `The PHP version in the response header, ${v}, has no official fix from php.net. Ask the provider whether they applied their own patch, and plan a move to 8.2 or later. A site built on old PHP may need its frameworks and libraries updated and retested before it can move, which takes time. Ask your web agency for the scope and schedule, and until the move is done, consider restricting access or taking the site offline for a while. Taking a site offline to protect its users can be the right call.`,
+    actLongCookie:
+      "Warning: an abnormally long PHPSESSID cookie was returned. JPCERT/CC (Japan's CERT) lists this as a possible indicator of php2shell exploitation. Contact your server administrator or hosting provider now.",
+  },
 
   ui: {
-    nav: { home: "Check", providers: "Provider status", guide: "Guide", tools: "Tools", about: "About" },
+    nav: { home: "Check", providers: "Provider status", advisories: "Advisories", tools: "Tools", about: "About" },
     menu: "Menu",
     skip: "Skip to content",
     privacy: "Privacy",
@@ -231,7 +208,10 @@ Thank you.`,
     distrustedRoots: "Root certificates browsers no longer trust",
     mxSuffixes: "Mail servers",
     asNames: "Text in the AS name",
-    noIncident: "This provider does not run PHP on the customer's behalf, so no status is recorded.",
+    noIncident: "None of the advisories tracked here concerns this kind of provider, so no status is recorded.",
+    noStatement: "No statement recorded",
+    noStatementAsOf: (date: string) => `No statement from this provider is recorded here, as of ${date}. That says nothing about whether it is affected.`,
+    providerAdvisories: "Advisories",
     correction: "Report a correction (GitHub)",
     verifiedOn: "Verified:",
     notFound: "Not found.",
@@ -239,6 +219,34 @@ Thank you.`,
     mapCaption: "The companies behind one domain",
     steps: ["Public DNS", "Routing (AS)", "Front page", "Certificate"],
     exampleDomain: "example.com",
+    advisories: {
+      eyebrow: "Advisories",
+      title: "Current vulnerabilities that matter to site owners",
+      intro:
+        "Vulnerabilities in software that runs websites, with the upstream fix, where each distribution or vendor stands, what each provider has announced, and what to ask your host. Everything is taken from the linked sources; being listed here does not mean your site is affected.",
+      staleNote: (days: number) => `Anything checked more than ${days} days ago is greyed out. Check its source for the current status.`,
+      contents: "On this page",
+      published: "Published",
+      severity: (version: string, score: string) => `CVSS ${version} ${score}`,
+      upstreamFix: "Upstream fix",
+      fixesTitle: "Distribution and vendor fixes",
+      colVendor: "Distribution or vendor",
+      colState: "Status",
+      colDetail: "Details",
+      colChecked: "Checked",
+      fixStateLabels: { patched: "patched", testing: "fix in testing", none: "no fix yet" },
+      stopgap: "If you can't patch yet",
+      askTitle: "What to ask your host",
+      askVendor: "[your host]",
+      askDomain: "[your domain]",
+      providersTitle: "What providers have announced",
+      providersCount: (statements: number, total: number) => `${statements} of ${total} providers have a recorded statement`,
+      providersNote: (date: string) =>
+        `Only what each provider has announced, with its source. "No statement recorded" means none was found as of ${date}; it does not mean the provider, or your site, is affected.`,
+      colAnnounced: "Announced status",
+      stale: (days: number) => `checked over ${days} days ago`,
+      seeAll: "See the advisories",
+    },
   },
 
   tools: {

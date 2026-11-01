@@ -17,8 +17,6 @@
 # Kinds: hosting (runs PHP for the customer) | cloud (customer runs PHP) |
 #        cdn | dns | mail
 
-incident: php2shell
-incident_cves: [CVE-2026-109618, CVE-2026-109619]
 updated_at: "2026-10-23"
 
 providers:

@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { loadProviders } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 import { checkEvidence, holdBack, type Evidence } from "@/scripts/check-evidence";
 import type { Manifest } from "@/scripts/check-sources";
 
-const yaml = (alphaStatus: string, alphaSummary: string, updated = "2026-10-24") => `incident: php2shell
-updated_at: "${updated}"
+const yaml = (alphaStatus: string, alphaSummary: string, updated = "2026-10-24") => `updated_at: "${updated}"
 providers:
   - id: alpha
     name: Alpha Hosting
@@ -29,9 +29,9 @@ providers:
         summary_en: s
         verified_at: "2026-10-24"
 `;
-const before = loadProviders(yaml("in_progress", "作業中"));
-const progressed = loadProviders(yaml("in_progress", "大半のサーバーで完了", "2026-10-26"));
-const patched = loadProviders(yaml("patched", "全サーバーで完了", "2026-10-26"));
+const before = loadProviders(yaml("in_progress", "作業中"), advisories);
+const progressed = loadProviders(yaml("in_progress", "大半のサーバーで完了", "2026-10-26"), advisories);
+const patched = loadProviders(yaml("patched", "全サーバーで完了", "2026-10-26"), advisories);
 
 const manifest: Manifest = {
   date: "2026-10-26",
@@ -117,11 +117,9 @@ describe("checkEvidence", () => {
     expect(checkEvidence(manifest, texts, evidence, before, before).errors).toEqual(['beta: change must be "updated" or "unchanged", not "skipped"']);
   });
 
-  it("rejects an added or removed provider, or a change of incident", () => {
-    const added = loadProviders(yaml("in_progress", "作業中") + `  - id: gamma\n    name: G\n    name_ja: G\n    kind: cdn\n`);
+  it("rejects an added or removed provider", () => {
+    const added = loadProviders(yaml("in_progress", "作業中") + `  - id: gamma\n    name: G\n    name_ja: G\n    kind: cdn\n`, advisories);
     expect(checkEvidence(manifest, texts, { handled: [] }, before, added).errors).toEqual(["gamma: providers may not be added or removed"]);
-    const other = loadProviders(yaml("in_progress", "作業中").replace("incident: php2shell", "incident: other"));
-    expect(checkEvidence(manifest, texts, { handled: [] }, before, other).errors).toEqual(["the incident key may not change"]);
   });
 });
 
@@ -130,7 +128,7 @@ describe("holdBack", () => {
     const committed = yaml("in_progress", "作業中");
     const edited = yaml("patched", "全サーバーで完了", "2026-10-26").replace("status: unknown", "status: in_progress");
     const out = holdBack(committed, edited, ["alpha"]);
-    const t = loadProviders(out);
+    const t = loadProviders(out, advisories);
     expect(t.get("alpha")).toEqual(before.get("alpha"));
     expect(t.get("beta")?.incidents.php2shell.status).toBe("in_progress");
     expect(t.updated_at).toBe("2026-10-26");

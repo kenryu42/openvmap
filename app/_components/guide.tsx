@@ -12,7 +12,7 @@ function trustedGuideHtml(lang: Lang, incident: string): string {
 
 export function GuidePage({ lang, incident }: { lang: Lang; incident: string }) {
   return (
-    <Site lang={lang} alt={guidePath(otherLang(lang), incident)} incident={incident}>
+    <Site lang={lang} alt={guidePath(otherLang(lang), incident)}>
       <article className="prose rise mx-auto" dangerouslySetInnerHTML={{ __html: trustedGuideHtml(lang, incident) }} />
     </Site>
   );

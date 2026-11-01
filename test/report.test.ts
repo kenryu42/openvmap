@@ -3,9 +3,10 @@ import { runCheck } from "@/lib/check";
 import { daysSince } from "@/lib/stale";
 import type { Resolver } from "@/lib/dns";
 import { loadProviders } from "@/lib/provider";
+import { advisories } from "@/lib/table";
 
-const table = loadProviders(`
-incident: php2shell
+const table = loadProviders(
+  `
 providers:
   - id: vercel
     name: Vercel
@@ -27,7 +28,9 @@ providers:
     name_ja: AWS
     kind: cloud
     asns: [16509]
-`);
+`,
+  advisories,
+);
 
 const resolver: Resolver = {
   resolve4: (h) => Promise.resolve(h === "nextjs.org" ? ["64.239.109.1"] : h === "www.nextjs.org" ? ["64.239.109.65"] : []),
@@ -53,7 +56,7 @@ describe("a site platform on cloud addresses", () => {
   });
 
   it("still gives the IaaS advice when only the cloud matched", async () => {
-    const plain = loadProviders("incident: php2shell\nproviders:\n  - id: aws\n    name: AWS\n    name_ja: AWS\n    kind: cloud\n    asns: [16509]\n");
+    const plain = loadProviders("providers:\n  - id: aws\n    name: AWS\n    name_ja: AWS\n    kind: cloud\n    asns: [16509]\n", advisories);
     const r = await runCheck("nextjs.org", { table: plain, resolver, version: "t", lang: "en" });
     expect(r.actions[0]).toContain("AWS is IaaS");
     expect(r.message_template).toContain("To: AWS");
@@ -61,8 +64,8 @@ describe("a site platform on cloud addresses", () => {
 });
 
 describe("a network shared by several services of one operator", () => {
-  const shared = loadProviders(`
-incident: php2shell
+  const shared = loadProviders(
+    `
 providers:
   - id: xserver
     name: Xserver
@@ -80,7 +83,9 @@ providers:
     ns_suffixes: [star-domain.jp]
     incidents:
       php2shell: {status: patched, confidence: secondary, date: "2026-10-23", summary: x, summary_en: x, customer_action: x, customer_action_en: x, verified_at: "2026-10-24"}
-`);
+`,
+    advisories,
+  );
   const on = (ns: string): Resolver => ({
     resolve4: (h) => Promise.resolve(h === "example.jp" ? ["162.43.112.88"] : []),
     resolve6: () => Promise.resolve([]),

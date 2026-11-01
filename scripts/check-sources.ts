@@ -181,7 +181,7 @@ export interface NewsCheck {
 }
 
 export const watchWords =
-  /php|脆弱性|ぜい弱性|セキュリティ|cve-|不正アクセス|漏えい|漏洩|情報流出|インシデント|証明書|緊急|一時停止|安全対策|security|vulnerab|incident|breach|exploit|emergency/i;
+  /php|kernel|カーネル|linux|脆弱性|ぜい弱性|セキュリティ|cve-|不正アクセス|漏えい|漏洩|情報流出|インシデント|証明書|緊急|一時停止|安全対策|security|vulnerab|incident|breach|exploit|emergency/i;
 
 export function newsOf(t: Table): NewsPage[] {
   const byUrl = new Map<string, NewsPage>();
@@ -297,7 +297,7 @@ export function report(r: SourceCheck, at: Date, news?: NewsCheck): string {
   }
   if (posts.length > 0) {
     lines.push(
-      "New posts on vendor news lists whose title mentions PHP, a vulnerability, security, an emergency or a pause. A provider may have announced something the table does not show yet.",
+      "New posts on vendor news lists whose title mentions PHP, the Linux kernel, a vulnerability, security, an emergency or a pause. A provider may have announced something the table does not show yet.",
       "",
       "| Provider | Post |",
       "| --- | --- |",

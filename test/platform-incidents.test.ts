@@ -3,7 +3,7 @@ import { checkPage, runCheck, type PageResponse, type Transport } from "@/lib/ch
 import type { Resolver } from "@/lib/dns";
 import { loadProviders } from "@/lib/provider";
 import { addPage, reportJson } from "@/lib/report";
-import { table } from "@/lib/table";
+import { advisories, table } from "@/lib/table";
 import type { CertProbe, TlsCert } from "@/lib/tls";
 import { validateTable } from "@/scripts/validate-providers";
 
@@ -96,11 +96,11 @@ describe("a provider's own security incident", () => {
 describe("table rules for other incidents", () => {
   const entry = (id: string, extra: string) =>
     `  - id: ${id}\n    name: ${id}\n    name_ja: ${id}\n    kind: paas\n${extra}\n    incidents:\n      php2shell:\n        status: n/a\n        summary: s\n        summary_en: s\n        verified_at: "2026-10-24"\n      leak-2026:\n        status: in_progress\n        summary: s\n        summary_en: s\n        verified_at: "2026-10-24"`;
-  const t = (body: string) => loadProviders(`incident: php2shell\nupdated_at: "2026-10-24"\nproviders:\n${body}`);
+  const t = (body: string) => loadProviders(`updated_at: "2026-10-24"\nproviders:\n${body}`, advisories);
 
-  it("requires a title for an incident other than the main one", () => {
+  it("requires a title for an incident that is not an advisory", () => {
     expect(validateTable(t(entry("a", "    cname_suffixes: [a.example]")))).toEqual([
-      "a: leak-2026: title and title_en are required for an incident other than php2shell",
+      "a: leak-2026: title and title_en are required for an incident that is not an advisory",
     ]);
   });
 

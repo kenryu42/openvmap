@@ -1,7 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
 import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
-import { messages, type Lang } from "@/lib/lang";
+import { advisoryLabel } from "./site";
+import type { Lang } from "@/lib/lang";
 import { siteUrl } from "@/lib/meta";
 import { table } from "@/lib/table";
 import "../globals.css";
@@ -10,7 +11,7 @@ const geist = Geist({ subsets: ["latin"], variable: "--font-geist" });
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-geist-mono" });
 const notoJp = Noto_Sans_JP({ subsets: ["latin"], variable: "--font-noto-jp", preload: false });
 
-const incident = (lang: Lang) => messages(lang).ui.incidentLabel(table.incident, table.incident_cves);
+const incident = (lang: Lang) => table.advisories.map((a) => advisoryLabel(a, lang)).join(lang === "ja" ? "、" : ", ");
 
 const titles = {
   en: {

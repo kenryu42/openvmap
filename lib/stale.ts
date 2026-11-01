@@ -7,3 +7,8 @@ export function daysSince(verifiedAt: string, now: number): number | null {
   const t = Date.parse(`${verifiedAt}T00:00:00${japanUtcOffset}`);
   return Number.isNaN(t) ? null : Math.floor((now - t) / msPerDay);
 }
+
+export function isStale(checkedOn: string, now: number, afterDays = staleAfterDays): boolean {
+  const age = daysSince(checkedOn, now);
+  return age !== null && age > afterDays;
+}
