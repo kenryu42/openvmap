@@ -1128,7 +1128,8 @@
     "https://www.onamae.com/news/article/11624",
     "https://www.onamae.com/news/article/11623",
     "https://www.onamae.com/news/article/11627",
-    "https://www.onamae.com/news/article/11628"
+    "https://www.onamae.com/news/article/11628",
+    "https://www.onamae.com/news/article/11629"
   ],
   "https://www.wadax.ne.jp/news/": [
     "https://faq.wadax.ne.jp/s/",
@@ -2029,7 +2030,10 @@
     "https://web-cloud.status-ovhcloud.com/incidents/qn5zfl825z9p",
     "https://web-cloud.status-ovhcloud.com/incidents/1n8hm02xhbr1",
     "https://web-cloud.status-ovhcloud.com/incidents/43jw7p7wr8bk",
-    "https://web-cloud.status-ovhcloud.com/incidents/lr3k3cfxt11v"
+    "https://web-cloud.status-ovhcloud.com/incidents/lr3k3cfxt11v",
+    "https://web-cloud.status-ovhcloud.com/incidents/p5xkw0ynsdzy",
+    "https://web-cloud.status-ovhcloud.com/incidents/83nbsfltjjfp",
+    "https://web-cloud.status-ovhcloud.com/incidents/1t5gzw26ntmq"
   ],
   "https://www.namecheap.com/status-updates/category/hosting/feed/": [
     "https://www.namecheap.com/status-updates/ongoing-php-security-vulnerability-affecting-hosting-services-october-21-2026/",
@@ -2885,7 +2889,8 @@
     "https://zeabur.com/ja-JP/product/domain",
     "https://zeabur.com/ja-JP/product/email",
     "https://zeabur.com/ja-JP/product/vps",
-    "https://zeabur.com/support"
+    "https://zeabur.com/support",
+    "https://zeabur.com/ja-JP/blogs/october-2026-security-incident-follow-up"
   ],
   "https://www.idcf.jp/rentalserver/maintenance/": [
     "https://blog.idcf.jp/?bid=gnav_cl",
@@ -3323,6 +3328,7 @@
     "https://www.youtube.com/@siteground",
     "https://www.youtube.com/watch?v=pjq1mcaBJrM",
     "https://www.youtube.com/watch?v=uw96_4OfJCc",
-    "https://x.com/i/grok?text=As+a+business+looking+to+establish+and+grow+an+online+presence+without+a+dedicated+technical+team%2C+I+want+to+understand+what+makes+SiteGround+more+than+just+a+hosting+company+and+why+it%27s+the+best+all-in-one+platform+to+consolidate+my+web+tools+under+one+roof.+Summarize+the+key+highlights+from+SiteGround%27s+full+product+ecosystem%2C+covering+hosting+plans%2C+website+builder%2C+domain+registration%2C+email+marketing%2C+ecommerce+tools%2C+AI+capabilities+%28Coderick+AI+and+AI+Studio%29%2C+collaboration+tools%2C+and+affiliate+program%2C+and+how+they+all+work+together+to+help+small+businesses+and+agencies+grow+online+without+relying+on+multiple+separate+providers.+Also+include+how+SiteGround+compares+to+other+leading+hosting+providers.+Then+finish+with%3A+%281%29+a+90-second+pitch+I+can+use+to+explain+SiteGround+to+someone+unfamiliar+with+web+hosting%2C+%282%29+the+top+5+reasons+someone+will+choose+SiteGround%2C+and+%283%29+three+immediate+outcomes+I+can+expect+after+starting+with+SiteGround.+Keep+the+answer+short+and+structured%3A+https%3A%2F%2Fwww.siteground.com"
+    "https://x.com/i/grok?text=As+a+business+looking+to+establish+and+grow+an+online+presence+without+a+dedicated+technical+team%2C+I+want+to+understand+what+makes+SiteGround+more+than+just+a+hosting+company+and+why+it%27s+the+best+all-in-one+platform+to+consolidate+my+web+tools+under+one+roof.+Summarize+the+key+highlights+from+SiteGround%27s+full+product+ecosystem%2C+covering+hosting+plans%2C+website+builder%2C+domain+registration%2C+email+marketing%2C+ecommerce+tools%2C+AI+capabilities+%28Coderick+AI+and+AI+Studio%29%2C+collaboration+tools%2C+and+affiliate+program%2C+and+how+they+all+work+together+to+help+small+businesses+and+agencies+grow+online+without+relying+on+multiple+separate+providers.+Also+include+how+SiteGround+compares+to+other+leading+hosting+providers.+Then+finish+with%3A+%281%29+a+90-second+pitch+I+can+use+to+explain+SiteGround+to+someone+unfamiliar+with+web+hosting%2C+%282%29+the+top+5+reasons+someone+will+choose+SiteGround%2C+and+%283%29+three+immediate+outcomes+I+can+expect+after+starting+with+SiteGround.+Keep+the+answer+short+and+structured%3A+https%3A%2F%2Fwww.siteground.com",
+    "https://www.siteground.com/blog/linux-kernel-tcp-vulnerability-cve-2026-98432"
   ]
 }

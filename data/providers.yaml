@@ -41,7 +41,7 @@
 # n/a is for kinds that do not run the affected software for the customer;
 # an advisory's required_for kinds may not use it.
 
-updated_at: "2026-11-02"
+updated_at: "2026-11-04"
 
 providers:
 
@@ -1049,13 +1049,13 @@ providers:
         title_en: "October 2026 security incident (environment variables exposed) and shutdown"
         status: "in_progress"
         confidence: official
-        date: "2026-10-19"
-        summary: "公式の暫定報告（10月19日、日本語版あり）：10月14〜15日（UTC）、漏えいしていた内部の認証情報を使って攻撃者が共有クラスター・GCP専用サーバー・内部システムに侵入し、共有クラスターのサービス設定と環境変数、Zeaburのデータベースに保存された環境変数を読み取った。8月にも別の事故があり、そのときの鍵の入れ替えは今回使われた認証情報を含んでいなかった。原因はZeabur側にある（長期間有効な管理者認証情報の平文保存）。Zeaburは10月17日にサービス終了を発表し、12月1日から共有クラスターのサービスを一時停止、12月31日までにすべての共有クラスターと専用サーバーを終了する。調査は継続中。"
-        summary_en: "Official preliminary report (Oct 19, also in Japanese): on Oct 14-15 UTC an attacker used leaked internal credentials to enter the shared cluster, GCP dedicated servers and internal systems, and read service settings and environment variables on the shared cluster as well as the environment variables stored in Zeabur's database. A separate incident happened in August, and the credential rotation then did not cover the ones used this time. Zeabur says the root cause is its own (long-lived admin credentials stored in plaintext). On Oct 17 Zeabur announced it is shutting down: shared-cluster services are paused from Dec 1, and all shared clusters and dedicated servers end by Dec 31. The investigation continues."
-        customer_action: "Zeaburに保存したすべてのパスワードと鍵（APIキー、クラウドの鍵、データベースのパスワード、署名・暗号鍵）を、8月に入れ替えたものも含めて提供元で失効させ、新しい値に替えて再デプロイする。共有クラスターのデータベースは中のパスワードも変更する。アクセストークンを作り直し、GitHubの監査ログと10月14日以降（GCP専用サーバーは9月1日以降）の請求を確認する。12月1日までにバックアップと移行を済ませる。"
-        customer_action_en: "Revoke every password and key stored on Zeabur (API keys, cloud keys, database passwords, signing and encryption keys), including ones already replaced in August, then set new values and redeploy. On the shared cluster, also change the passwords inside your databases. Recreate access tokens, check the GitHub audit log and bills from Oct 14 (Sept 1 for GCP dedicated servers). Back up and migrate before Dec 1."
+        date: "2026-10-28"
+        summary: "公式の暫定報告（10月19日、日本語版あり）：10月14〜15日（UTC）、漏えいしていた内部の認証情報を使って攻撃者が共有クラスター・GCP専用サーバー・内部システムに侵入し、共有クラスターのサービス設定と環境変数、Zeaburのデータベースに保存された環境変数を読み取った。8月にも別の事故があり、そのときの鍵の入れ替えは今回使われた認証情報を含んでいなかった。原因はZeabur側にある（長期間有効な管理者認証情報の平文保存）。Zeaburは10月17日にサービス終了を発表し、12月1日から共有クラスターのサービスを一時停止、12月31日までにすべての共有クラスターと専用サーバーを終了する。調査は継続中。10月28日の続報では、現在の財務状況では今回の事故に起因する第三者サービスの費用を支払えないとし、提供元への費用減免・返金の申請を支援する（公開した調査報告をそのまま説明資料として提出できる）としている。前払いのアカウント残高は所定の返金手続きで返金し、Zeaburは12月31日で運営を終了する。"
+        summary_en: "Official preliminary report (Oct 19, also in Japanese): on Oct 14-15 UTC an attacker used leaked internal credentials to enter the shared cluster, GCP dedicated servers and internal systems, and read service settings and environment variables on the shared cluster as well as the environment variables stored in Zeabur's database. A separate incident happened in August, and the credential rotation then did not cover the ones used this time. Zeabur says the root cause is its own (long-lived admin credentials stored in plaintext). On Oct 17 Zeabur announced it is shutting down: shared-cluster services are paused from Dec 1, and all shared clusters and dedicated servers end by Dec 31. The investigation continues. A follow-up on Oct 28 says that, given its current finances, Zeabur cannot pay third-party service charges caused by the incident; it will help customers ask those providers for waivers or refunds (its published investigation report can be submitted as supporting material). Prepaid account balances will be refunded through its refund process, and Zeabur ends operations on Dec 31."
+        customer_action: "Zeaburに保存したすべてのパスワードと鍵（APIキー、クラウドの鍵、データベースのパスワード、署名・暗号鍵）を、8月に入れ替えたものも含めて提供元で失効させ、新しい値に替えて再デプロイする。共有クラスターのデータベースは中のパスワードも変更する。アクセストークンを作り直し、GitHubの監査ログと10月14日以降（GCP専用サーバーは9月1日以降）の請求を確認する。漏えいした鍵の悪用で費用が発生してもZeaburは負担しないため、各提供元の異議申し立て・減免の窓口にZeaburの調査報告を添えて申請する。前払い残高は返金手続きで申請する。12月1日までにバックアップと移行を済ませる。"
+        customer_action_en: "Revoke every password and key stored on Zeabur (API keys, cloud keys, database passwords, signing and encryption keys), including ones already replaced in August, then set new values and redeploy. On the shared cluster, also change the passwords inside your databases. Recreate access tokens, check the GitHub audit log and bills from Oct 14 (Sept 1 for GCP dedicated servers). Zeabur will not pay charges caused by misuse of leaked keys: dispute them with each provider, attaching Zeabur's investigation report. Claim any prepaid balance through its refund process. Back up and migrate before Dec 1."
         source: https://zeabur.com/ja-JP/blogs/october-2026-security-incident
-        verified_at: "2026-10-24"
+        verified_at: "2026-11-04"
 
   # ---- Cloud (IaaS): the customer or their agency runs PHP. linode precedes akamai because its AS name also contains AKAMAI.
 
