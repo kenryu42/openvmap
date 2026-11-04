@@ -41,7 +41,7 @@
 # n/a is for kinds that do not run the affected software for the customer;
 # an advisory's required_for kinds may not use it.
 
-updated_at: "2026-11-04"
+updated_at: "2026-11-05"
 
 providers:
 
@@ -590,13 +590,13 @@ providers:
       php2shell:
         status: "patched"
         confidence: official
-        date: "2026-10-22"
-        summary: "公式発表（ブログ10月21日、22日・23日更新／ステータスページ）：10月22日6:44（UTC）までに、VPSを除くすべてのホスティングサーバー（Web・Cloud・Agency・cPanel）でPHPの修正を完了。Web・Cloud・cPanelでは5.2〜8.5のすべてのバージョンに修正済みビルドを配備した。修正は既存バージョンに組み込んだため、8.5.11のように番号が変わらない場合がある（hPanelのPHP Info Build Dateが2026年10月21日以降なら適用済み）。10月23日に公表されたCVE-2026-115560も、VPS以外は10月21日の対策で保護済みとしている。VPSは利用者がPHPを管理する。"
-        summary_en: "Official (blog of Oct 21, updated Oct 22-23, plus status page): by 06:44 UTC on Oct 22 the PHP fix was installed on all hosting servers except VPS (Web, Cloud, Agency and cPanel), with patched builds for every version from 5.2 to 8.5 on Web, Cloud and cPanel. The fix was built into the existing versions, so the number may stay at e.g. 8.5.11; a PHP Info build date of Oct 21 2026 or later in hPanel means it is applied. Hostinger says the Oct 21 changes also cover CVE-2026-115560 (disclosed Oct 23) on all plans except VPS. VPS customers run PHP themselves."
+        date: "2026-10-23"
+        summary: "公式発表（ブログ10月21日、22日・23日更新／ステータスページ）：10月22日6:44（UTC）までに、VPSを除くすべてのホスティングサーバー（Web・Cloud・Agency・cPanel）でPHPの修正を完了。Web・Cloud・cPanelでは5.2〜8.5のすべてのバージョンに修正済みビルドを配備した。修正は利用中のPHPバージョンに組み込んだため、バージョン番号が変わらない場合がある（ダッシュボードのWebsites→Dashboard→PHP InfoでBuild Dateが2026年10月21日以降なら適用済み）。10月23日に公表されたCVE-2026-115560も、VPS以外は10月21日の対策で保護済みとしている。VPSは利用者がPHPを管理する。"
+        summary_en: "Official (blog of Oct 21, updated Oct 22-23, plus status page): by 06:44 UTC on Oct 22 the PHP fix was installed on all hosting servers except VPS (Web, Cloud, Agency and cPanel), with patched builds for every version from 5.2 to 8.5 on Web, Cloud and cPanel. The fix was built into the PHP version each site already runs, so the version number may not change; a Build Date of Oct 21 2026 or later under Websites > Dashboard > PHP Info in the Hostinger dashboard means it is applied. Hostinger says the Oct 21 changes also cover CVE-2026-115560 (disclosed Oct 23) on all plans except VPS. VPS customers run PHP themselves."
         customer_action: "VPS以外は対応不要。VPS利用者はPHPを8.5.12／8.4.27／8.3.36／8.2.35へ更新して再起動する（すぐ更新できない場合はphp.iniかPHP-FPMの設定でsession.upload_progress.enabled = Offにし、全ワーカーを再起動）。PHP 8.2は2026年12月31日でセキュリティ修正が終わるため、8.3以降への移行を検討。"
         customer_action_en: "Nothing to do on any plan except VPS. VPS customers should update PHP to 8.5.12, 8.4.27, 8.3.36 or 8.2.35 and restart it (if they cannot yet, set session.upload_progress.enabled = Off in php.ini or the PHP-FPM pool and restart all workers). PHP 8.2 stops getting security fixes on Dec 31 2026, so plan a move to 8.3 or newer."
         source: https://www.hostinger.com/blog/protecting-php2shell/
-        verified_at: "2026-10-26"
+        verified_at: "2026-11-05"
 
   - id: ionos
     name: "IONOS"
