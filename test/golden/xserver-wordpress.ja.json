@@ -2,9 +2,9 @@
   "tool": "OpenVMap",
   "version": "test",
   "advisories": [
+    "cve-2026-123158",
     "php2shell",
-    "cve-2026-98432",
-    "cve-2026-123158"
+    "cve-2026-98432"
   ],
   "domain": "example.co.jp",
   "checked_at": "2026-10-23T18:00:00Z",
@@ -69,6 +69,9 @@
       ],
       "advisories": [
         {
+          "id": "cve-2026-123158"
+        },
+        {
           "id": "php2shell",
           "status": "patched",
           "confidence": "official",
@@ -82,9 +85,6 @@
         },
         {
           "id": "cve-2026-98432"
-        },
-        {
-          "id": "cve-2026-123158"
         }
       ]
     },

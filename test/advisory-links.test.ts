@@ -58,7 +58,8 @@ describe("a provider row on the domain report", () => {
 
   it("shows the announced status where there is one, and no statement where there is none", async () => {
     const card = providerCard(await reportHtml("en"), "example-hosting");
-    const [, php, kernel] = card.split("/advisories#");
+    const row = (id: string) => card.split("/advisories#").find((part) => part.startsWith(`${id}"`))!;
+    const [php, kernel] = [row("php2shell"), row("cve-2026-98432")];
     expect(php).toContain("patched");
     expect(php).toContain("Fixed on every server");
     expect(kernel).toContain("No statement recorded");
@@ -93,6 +94,14 @@ describe("the advisories page", () => {
       for (const p of placeholders) expect(html).toContain(p);
       expect(html).not.toContain("{vendor}");
       expect(html).not.toContain("{domain}");
+    });
+
+    it(`lists the newest advisory first (${lang})`, () => {
+      const shown = [...html.matchAll(/<article id="([^"]+)"/g)].map((m) => m[1]);
+      const published = shown.map((id) => advisories.find((a) => a.id === id)!.published);
+      expect(shown).toHaveLength(advisories.length);
+      expect(published).toEqual([...published].sort().reverse());
+      expect(shown.slice(0, 2)).toEqual(["cve-2026-123158", "php2shell"]);
     });
 
     it(`keeps the link to the php2shell guide (${lang})`, () => {

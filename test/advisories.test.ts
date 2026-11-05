@@ -30,9 +30,9 @@ const advisory = (extra = "") => `advisories:
 ${extra}`;
 
 describe("the shipped advisories", () => {
-  it("lists php2shell, tied to the PHP check and its guide, the Linux kernel advisory and the OpenSSH musl bypass", () => {
-    expect(shipped.map((a) => a.id)).toEqual(["php2shell", "cve-2026-98432", "cve-2026-123158"]);
-    const [php, kernel, openssh] = shipped;
+  it("lists the OpenSSH musl bypass, php2shell (tied to the PHP check and its guide) and the Linux kernel advisory, newest first", () => {
+    expect(shipped.map((a) => a.id)).toEqual(["cve-2026-123158", "php2shell", "cve-2026-98432"]);
+    const [openssh, php, kernel] = shipped;
     expect(php).toMatchObject({ cves: ["CVE-2026-109618", "CVE-2026-109619"], site_check: "php", guide: true });
     expect(kernel).toMatchObject({ cves: ["CVE-2026-98432"], cvss: "9.8", guide: false });
     expect(kernel.site_check).toBeUndefined();

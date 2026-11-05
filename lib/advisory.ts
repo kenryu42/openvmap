@@ -55,7 +55,7 @@ export function loadAdvisories(yamlText: string): Advisory[] {
     throw new Error(`advisories: ${err instanceof Error ? err.message : String(err)}`);
   }
   const seen = new Set<string>();
-  return list_(obj(raw, "file").advisories, "advisories").map((entry, i): Advisory => {
+  const advisories = list_(obj(raw, "file").advisories, "advisories").map((entry, i): Advisory => {
     const e = obj(entry, `entry ${i}`);
     const id = str(e.id);
     if (id === "") throw new Error(`advisories: entry ${i} has no id`);
@@ -97,6 +97,7 @@ export function loadAdvisories(yamlText: string): Advisory[] {
       providers_checked_at: str(e.providers_checked_at),
     };
   });
+  return advisories.sort((a, b) => b.published.localeCompare(a.published));
 }
 
 function fixStatus(f: Record<string, unknown>, id: string): FixStatus {
