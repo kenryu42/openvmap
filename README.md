@@ -21,7 +21,7 @@ Enter a domain and OpenVMap shows:
 
 A flaw on the server is fixed by whoever runs the server. An outside "scan" fixes nothing.
 
-Current advisories: php2shell (CVE-2026-109618 / CVE-2026-109619; read the [guide](content/guide/php2shell/en.md)) a Linux kernel IPv4 TCP use-after-free (CVE-2026-98432) and an OpenSSH password authentication bypass on musl systems such as Alpine Linux (CVE-2026-123158). Each is on the site's Advisories page with its upstream fix, distribution status, what providers have announced, and what to ask your host.
+Current advisories: php2shell (CVE-2026-109618 / CVE-2026-109619; read the [guide](content/guide/php2shell/en.md)), a Linux kernel IPv4 TCP use-after-free (CVE-2026-98432) and an OpenSSH password authentication bypass on musl systems such as Alpine Linux (CVE-2026-123158). Each is on the site's Advisories page with its upstream fix, distribution status, what providers have announced, and what to ask your host.
 
 ## What it does and doesn't do
 
