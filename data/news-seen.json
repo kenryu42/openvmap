@@ -186,7 +186,8 @@
     "https://www.xserver.ne.jp/support/information_phishing.php",
     "https://www.xserver.ne.jp/support/news.php",
     "https://x.com/xserverjp",
-    "https://www.xserver.ne.jp/news_detail.php?view_id=19756"
+    "https://www.xserver.ne.jp/news_detail.php?view_id=19756",
+    "https://www.xserver.ne.jp/php_vulnerability.php"
   ],
   "https://www.star.ne.jp/news/": [
     "https://community.star.ne.jp/",
@@ -1129,7 +1130,8 @@
     "https://www.onamae.com/news/article/11623",
     "https://www.onamae.com/news/article/11627",
     "https://www.onamae.com/news/article/11628",
-    "https://www.onamae.com/news/article/11629"
+    "https://www.onamae.com/news/article/11629",
+    "https://www.onamae.com/news/article/11636"
   ],
   "https://www.wadax.ne.jp/news/": [
     "https://faq.wadax.ne.jp/s/",
@@ -2065,7 +2067,8 @@
     "https://wpengine.com/blog/php-vulnerability-update/",
     "https://wpengine.com/blog/what-is-wp-engine-newsroom-wordpress/",
     "https://wpengine.com/blog/wordpress-content-monetization-strategies/",
-    "https://wpengine.com/blog/wp-engine-newsroom-review/"
+    "https://wpengine.com/blog/wp-engine-newsroom-review/",
+    "https://wpengine.com/blog/php-worker-cap-on-bots/"
   ],
   "https://status.kinsta.com/history.rss": [
     "https://status.kinsta.com/incidents/1jdhc3td0bwg",
