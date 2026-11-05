@@ -102,7 +102,8 @@ describe("the advisories page", () => {
 
   it("shows a provider's announced kernel status with its source, and lists the rest as having no statement", () => {
     const html = renderToStaticMarkup(createElement(AdvisoriesPage, { lang: "en" }));
-    const kernel = html.slice(html.indexOf('id="cve-2026-98432"'));
+    const start = html.indexOf('id="cve-2026-98432"');
+    const kernel = html.slice(start, html.indexOf("</article>", start));
     expect(kernel).toContain('href="/providers/siteground#cve-2026-98432"');
     expect(kernel).toContain('href="https://www.siteground.com/blog/linux-kernel-tcp-vulnerability-cve-2026-98432"');
     const silent = kernel.slice(kernel.indexOf("No statement recorded ·"));

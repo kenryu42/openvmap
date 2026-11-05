@@ -40,7 +40,7 @@ describe("advisories in the site's navigation and description", () => {
     it(`names every advisory and its CVEs in the site description and the providers page (${lang})`, () => {
       const description = String(rootMetadata(lang).description);
       const providers = renderToStaticMarkup(createElement(ProvidersPage, { lang }));
-      for (const cve of ["CVE-2026-109618 / CVE-2026-109619", "CVE-2026-98432"]) {
+      for (const cve of ["CVE-2026-109618 / CVE-2026-109619", "CVE-2026-98432", "CVE-2026-123158"]) {
         expect(description).toContain(cve);
         expect(providers).toContain(cve);
       }

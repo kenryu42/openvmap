@@ -3,7 +3,8 @@
   "version": "test",
   "advisories": [
     "php2shell",
-    "cve-2026-98432"
+    "cve-2026-98432",
+    "cve-2026-123158"
   ],
   "domain": "example.co.jp",
   "checked_at": "2026-10-23T18:00:00Z",
@@ -81,6 +82,9 @@
         },
         {
           "id": "cve-2026-98432"
+        },
+        {
+          "id": "cve-2026-123158"
         }
       ]
     },

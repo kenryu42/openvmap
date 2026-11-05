@@ -225,3 +225,68 @@ advisories:
     required_for: []
     guide: false
     providers_checked_at: "2026-11-02"
+
+  - id: cve-2026-123158
+    title: "OpenSSH（musl・PAM なし）のパスワード認証回避"
+    title_en: "OpenSSH password authentication bypass on musl without PAM"
+    cves: [CVE-2026-123158]
+    cvss: "8.1"
+    cvss_version: "3.1"
+    cvss_source: https://www.cve.org/CVERecord?id=CVE-2026-123158
+    published: "2026-11-05"
+    summary: "Alpine Linux など musl libc を使い PAM なしでパスワードを確認する sshd で、パスワード欄が「*」のアカウントに 257〜1024 バイトの任意のパスワードでログインされる。パスワードログインが有効で、別のアカウントに実際のパスワードがある場合に限る。root は既定の PermitRootLogin prohibit-password なら直接は入られない。glibc の Linux と UsePAM yes は対象外。修正は openssh の更新と sshd の再起動。"
+    summary_en: "On Alpine Linux and other musl libc systems where sshd checks passwords without PAM, any password of 257 to 1024 bytes logs in to an account whose password field is \"*\". It needs password logins enabled and some other account with a real password. With the default PermitRootLogin prohibit-password, root cannot be reached directly. glibc Linux and UsePAM yes are not affected. The fix is an updated openssh and a restart of sshd."
+    upstream:
+      label: "OpenSSH 10.6p2"
+      url: https://www.openssh.org/txt/release-10.6p2
+      checked_at: "2026-11-06"
+    fixes:
+      - name: "Alpine Linux 3.16〜3.24 / edge"
+        state: patched
+        detail: "openssh 10.3_p1-r2（3.24）、10.2_p1-r1（3.23）、10.0_p1-r11（3.22）、9.9_p2-r1（3.21）、10.6_p2-r0（edge）。サポート終了済みの 3.16〜3.20 にも修正版あり。更新後に sshd の再起動が必要。"
+        detail_en: "openssh 10.3_p1-r2 (3.24), 10.2_p1-r1 (3.23), 10.0_p1-r11 (3.22), 9.9_p2-r1 (3.21), 10.6_p2-r0 (edge); fixed packages also for end-of-life 3.16 to 3.20. sshd must be restarted after the update."
+        source: https://alpinelinux.org/posts/2026-11-05-openssh-password-authentication-bypass/
+        checked_at: "2026-11-06"
+    stopgap: "更新できるまでの間、sshd_config で PasswordAuthentication no にして sshd を再起動し、パスワードでのログインを止める（Alpine 公式）。sshd -T の出力に passwordauthentication no と出れば有効。"
+    stopgap_en: "Until you can update, set PasswordAuthentication no in sshd_config and restart sshd to turn off password logins (Alpine). sshd -T should then print passwordauthentication no."
+    ask: |-
+      件名: OpenSSH の脆弱性（CVE-2026-123158）への対応状況のご確認
+
+      {vendor} ご担当者様
+
+      お世話になっております。
+      2026年11月5日に公開された OpenSSH の脆弱性（CVE-2026-123158、musl libc を使い PAM を使わない環境でのパスワード認証回避）について、
+      弊社サイト（{domain}）を動かしているサーバーに関する以下の点をご確認いただけますでしょうか。
+
+      1. Alpine Linux など musl libc を使う OS のサーバーや、提供している VPS・クラウドのイメージに、パスワードで SSH ログインできるものがあるか
+      2. ある場合、修正版の openssh への更新と sshd の再起動の状況。未対応の場合は、対応予定日時
+      3. 対応までの間、パスワードでの SSH ログインを止めているか
+      4. 弊社側で必要な作業の有無（弊社が管理するサーバーの場合は、その旨）
+
+      参考:
+      - OpenSSH 10.6p2 リリースノート: https://www.openssh.org/txt/release-10.6p2
+      - Alpine Linux のセキュリティ勧告: https://alpinelinux.org/posts/2026-11-05-openssh-password-authentication-bypass/
+
+      お手数をおかけしますが、よろしくお願いいたします。
+    ask_en: |-
+      Subject: Status of the OpenSSH fix (CVE-2026-123158)
+
+      To: {vendor}
+
+      Regarding the OpenSSH vulnerability published on 2026-11-05 (CVE-2026-123158, a password authentication bypass on systems that use musl libc without PAM),
+      could you confirm the following for the servers that run our site ({domain})?
+
+      1. Whether any server, or any VPS or cloud image you provide, runs Alpine Linux or another musl libc system with password SSH logins enabled
+      2. If so, whether openssh has been updated to a fixed release and sshd restarted, and if not, when it will be
+      3. Whether password SSH logins are turned off until then
+      4. Whether anything is needed on our side (including if the server is one we manage ourselves)
+
+      Reference:
+      - OpenSSH 10.6p2 release notes: https://www.openssh.org/txt/release-10.6p2
+      - Alpine Linux security advisory: https://alpinelinux.org/posts/2026-11-05-openssh-password-authentication-bypass/
+
+      Thank you.
+    kinds: [hosting, cloud]
+    required_for: []
+    guide: false
+    providers_checked_at: "2026-11-06"
