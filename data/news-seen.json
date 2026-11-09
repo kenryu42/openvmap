@@ -187,7 +187,8 @@
     "https://www.xserver.ne.jp/support/news.php",
     "https://x.com/xserverjp",
     "https://www.xserver.ne.jp/news_detail.php?view_id=19756",
-    "https://www.xserver.ne.jp/php_vulnerability.php"
+    "https://www.xserver.ne.jp/php_vulnerability.php",
+    "https://www.xserver.ne.jp/news_detail.php?view_id=19874"
   ],
   "https://www.star.ne.jp/news/": [
     "https://community.star.ne.jp/",
@@ -383,7 +384,8 @@
     "https://www.wpx.ne.jp/old_server/support/faq/",
     "https://www.xserver.co.jp/company_security.php",
     "https://www.xserver.co.jp/recruit/",
-    "https://www.shin-server.jp/news/detail.php?view_id=2544"
+    "https://www.shin-server.jp/news/detail.php?view_id=2544",
+    "https://www.shin-server.jp/news/detail.php?view_id=2592"
   ],
   "https://www.wpx.ne.jp/news/": [
     "https://community.shin-server.jp/",
@@ -523,7 +525,8 @@
     "https://www.wpx.ne.jp/support/information/",
     "https://www.wpx.ne.jp/support/manual/",
     "https://www.xserver.co.jp/company_security.php",
-    "https://www.xserver.co.jp/recruit/"
+    "https://www.xserver.co.jp/recruit/",
+    "https://www.wpx.ne.jp/news/detail.php?view_id=3253"
   ],
   "https://www.sakura.ad.jp/corporate/information/announcements/": [
     "https://abuse.sakura.ad.jp/",
@@ -800,7 +803,8 @@
     "https://pepabo.com/company/privacy/",
     "https://tools.heteml.jp/",
     "https://webftp.heteml.jp/",
-    "https://x.com/heteml"
+    "https://x.com/heteml",
+    "https://heteml.jp/info/detail/id/2960"
   ],
   "https://www.conoha.jp/wing/news/": [
     "https://ai.conoha.jp/canvas/?btn_id=wing-news--commonFooter_ai-canvas",
@@ -2037,7 +2041,11 @@
     "https://web-cloud.status-ovhcloud.com/incidents/83nbsfltjjfp",
     "https://web-cloud.status-ovhcloud.com/incidents/1t5gzw26ntmq",
     "https://web-cloud.status-ovhcloud.com/incidents/pr4yl9cyly35",
-    "https://web-cloud.status-ovhcloud.com/incidents/p4cx1y5z4x9q"
+    "https://web-cloud.status-ovhcloud.com/incidents/p4cx1y5z4x9q",
+    "https://web-cloud.status-ovhcloud.com/incidents/y9j53vm78vkh",
+    "https://web-cloud.status-ovhcloud.com/incidents/cxhwvdlfb2kl",
+    "https://web-cloud.status-ovhcloud.com/incidents/4x6qq490bnkq",
+    "https://web-cloud.status-ovhcloud.com/incidents/zc0w01m0rq9k"
   ],
   "https://www.namecheap.com/status-updates/category/hosting/feed/": [
     "https://www.namecheap.com/status-updates/ongoing-php-security-vulnerability-affecting-hosting-services-october-21-2026/",
