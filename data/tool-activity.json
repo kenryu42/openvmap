@@ -3,7 +3,7 @@
     "license": "GPL-3.0",
     "archived": false,
     "last_commit": "2026-11-20",
-    "stars": 16752,
+    "stars": 16756,
     "release": {
       "tag": "3.1.7",
       "date": "2026-06-25"
@@ -17,7 +17,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-11-23",
-    "stars": 12879,
+    "stars": 12888,
     "release": {
       "tag": "v5.38.0",
       "date": "2026-10-28"
@@ -26,8 +26,8 @@
   "anchore/grype": {
     "license": "Apache-2.0",
     "archived": false,
-    "last_commit": "2026-11-20",
-    "stars": 13338,
+    "last_commit": "2026-11-24",
+    "stars": 13341,
     "release": {
       "tag": "v0.122.1",
       "date": "2026-11-18"
@@ -40,8 +40,8 @@
   "aquasecurity/trivy": {
     "license": "Apache-2.0",
     "archived": false,
-    "last_commit": "2026-11-23",
-    "stars": 39665,
+    "last_commit": "2026-11-24",
+    "stars": 39705,
     "release": {
       "tag": "v0.76.2",
       "date": "2026-11-05"
@@ -54,64 +54,64 @@
   "borgbackup/borg": {
     "license": "NOASSERTION",
     "archived": false,
-    "last_commit": "2026-11-23",
-    "stars": 13947,
+    "last_commit": "2026-11-24",
+    "stars": 13950,
     "release": {
       "tag": "1.4.5",
       "date": "2026-07-18"
     },
     "scorecard": {
       "score": 6.2,
-      "date": "2026-11-16"
+      "date": "2026-11-23"
     }
   },
   "corazawaf/coraza": {
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-11-23",
-    "stars": 4051,
+    "stars": 4053,
     "release": {
       "tag": "v3.8.1",
       "date": "2026-10-02"
     },
     "scorecard": {
-      "score": 9,
-      "date": "2026-11-16"
+      "score": 9.3,
+      "date": "2026-11-23"
     }
   },
   "coreruleset/coreruleset": {
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-11-23",
-    "stars": 3369,
+    "stars": 3372,
     "release": {
       "tag": "v4.31.0",
       "date": "2026-11-23"
     },
     "scorecard": {
-      "score": 6.9,
-      "date": "2026-11-16"
+      "score": 6.7,
+      "date": "2026-11-23"
     }
   },
   "crowdsecurity/crowdsec": {
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-11-19",
-    "stars": 15771,
+    "stars": 15785,
     "release": {
       "tag": "v1.8.2",
       "date": "2026-10-26"
     },
     "scorecard": {
       "score": 7.4,
-      "date": "2026-11-16"
+      "date": "2026-11-23"
     }
   },
   "dani-garcia/vaultwarden": {
     "license": "AGPL-3.0",
     "archived": false,
     "last_commit": "2026-11-24",
-    "stars": 71246,
+    "stars": 71298,
     "release": {
       "tag": "1.37.5",
       "date": "2026-11-01"
@@ -121,7 +121,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-10-13",
-    "stars": 327,
+    "stars": 328,
     "release": {
       "tag": "6.0.4",
       "date": "2026-10-13"
@@ -145,7 +145,7 @@
     "license": "NOASSERTION",
     "archived": false,
     "last_commit": "2026-11-23",
-    "stars": 19096,
+    "stars": 19102,
     "release": {
       "tag": "1.1.1",
       "date": "2026-08-15"
@@ -159,7 +159,7 @@
     "license": "GPL-3.0",
     "archived": false,
     "last_commit": "2026-11-24",
-    "stars": 12365,
+    "stars": 12367,
     "release": {
       "tag": "v0.43.0",
       "date": "2026-11-17"
@@ -173,7 +173,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-10-23",
-    "stars": 31289,
+    "stars": 31319,
     "release": {
       "tag": "v8.30.1",
       "date": "2026-03-21"
@@ -183,7 +183,7 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-11-23",
-    "stars": 11607,
+    "stars": 11620,
     "release": {
       "tag": "v2.7.1",
       "date": "2026-11-09"
@@ -197,7 +197,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-11-23",
-    "stars": 2097,
+    "stars": 2100,
     "release": {
       "tag": "v2.8.3",
       "date": "2026-11-23"
@@ -206,8 +206,8 @@
   "louislam/uptime-kuma": {
     "license": "MIT",
     "archived": false,
-    "last_commit": "2026-11-23",
-    "stars": 94808,
+    "last_commit": "2026-11-24",
+    "stars": 94845,
     "release": {
       "tag": "2.5.12",
       "date": "2026-11-17"
@@ -230,8 +230,8 @@
   "opengrep/opengrep": {
     "license": "LGPL-2.1",
     "archived": false,
-    "last_commit": "2026-11-23",
-    "stars": 3388,
+    "last_commit": "2026-11-24",
+    "stars": 3394,
     "release": {
       "tag": "v2.0.0",
       "date": "2026-11-13"
@@ -241,21 +241,21 @@
     "license": "Apache-2.0",
     "archived": false,
     "last_commit": "2026-11-23",
-    "stars": 5863,
+    "stars": 5865,
     "release": {
       "tag": "v5.7.0",
       "date": "2026-11-19"
     },
     "scorecard": {
-      "score": 8.8,
-      "date": "2026-11-23"
+      "score": 8.7,
+      "date": "2026-11-24"
     }
   },
   "passbolt/passbolt_api": {
     "license": "AGPL-3.0",
     "archived": false,
     "last_commit": "2026-11-12",
-    "stars": 6246,
+    "stars": 6247,
     "release": {
       "tag": "v5.18.0",
       "date": "2026-11-12"
@@ -268,8 +268,8 @@
   "projectdiscovery/nuclei": {
     "license": "MIT",
     "archived": false,
-    "last_commit": "2026-11-23",
-    "stars": 33240,
+    "last_commit": "2026-11-24",
+    "stars": 33263,
     "release": {
       "tag": "v3.11.1",
       "date": "2026-08-08"
@@ -282,39 +282,39 @@
   "renovatebot/renovate": {
     "license": "AGPL-3.0",
     "archived": false,
-    "last_commit": "2026-11-24",
-    "stars": 23241,
+    "last_commit": "2026-11-25",
+    "stars": 23252,
     "release": {
-      "tag": "44.259.0",
-      "date": "2026-11-24"
+      "tag": "44.261.3",
+      "date": "2026-11-25"
     },
     "scorecard": {
       "score": 7.5,
-      "date": "2026-11-24"
+      "date": "2026-11-25"
     }
   },
   "restic/restic": {
     "license": "BSD-2-Clause",
     "archived": false,
-    "last_commit": "2026-11-22",
-    "stars": 37414,
+    "last_commit": "2026-11-24",
+    "stars": 37433,
     "release": {
       "tag": "v0.20.0",
       "date": "2026-11-19"
     },
     "scorecard": {
-      "score": 7.3,
-      "date": "2026-11-02"
+      "score": 7.8,
+      "date": "2026-11-23"
     }
   },
   "semgrep/semgrep": {
     "license": "LGPL-2.1",
     "archived": false,
     "last_commit": "2026-11-20",
-    "stars": 17913,
+    "stars": 17932,
     "release": {
-      "tag": "v1.186.0",
-      "date": "2026-11-18"
+      "tag": "v1.187.0",
+      "date": "2026-11-24"
     }
   },
   "testssl/testssl.sh": {
@@ -330,22 +330,22 @@
   "trufflesecurity/trufflehog": {
     "license": "AGPL-3.0",
     "archived": false,
-    "last_commit": "2026-11-23",
-    "stars": 29602,
+    "last_commit": "2026-11-24",
+    "stars": 29631,
     "release": {
       "tag": "v3.100.1",
       "date": "2026-11-23"
     },
     "scorecard": {
-      "score": 7.6,
-      "date": "2026-11-02"
+      "score": 7.7,
+      "date": "2026-11-23"
     }
   },
   "zaproxy/zaproxy": {
     "license": "Apache-2.0",
     "archived": false,
-    "last_commit": "2026-11-20",
-    "stars": 16255,
+    "last_commit": "2026-11-24",
+    "stars": 16268,
     "release": {
       "tag": "v2.17.0",
       "date": "2025-12-15"
@@ -359,7 +359,7 @@
     "license": "MIT",
     "archived": false,
     "last_commit": "2026-11-24",
-    "stars": 7134,
+    "stars": 7155,
     "release": {
       "tag": "v1.33.1",
       "date": "2026-11-22"
